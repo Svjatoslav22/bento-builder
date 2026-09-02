@@ -1,4 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../..");
+@config "../../tailwind.config.ts";
+
+@source "../components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../app/**/*.{js,ts,jsx,tsx,mdx}";
 
 @theme {
   --color-background: #09090b;
@@ -14,7 +18,11 @@
     "Liberation Mono", "Courier New", monospace;
 
   --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-blink: blink 1s step-end infinite;
+  --animate-pulse-bar: pulse-bar 1s ease-in-out infinite;
 }
+
+/* === Custom styles from HTML mockups === */
 
 @keyframes fade-in {
   from {
@@ -44,8 +52,8 @@
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
+  background-color: #09090b;
+  color: #fafafa;
 }
 
 .bento-card {
