@@ -1,15 +1,24 @@
 import Sidebar from "@/components/Sidebar";
 import SettingsPanel from "@/components/SettingsPanel";
-import EditorGrid from "@/components/editor/EditorGrid";
+import BentoGrid from "@/components/BentoGrid";
+import LogoutButton from "@/components/LogoutButton";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    redirect("/");
+  }
+
   return (
     <div className="antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-background">
       <Sidebar />
 
       <main className="flex-1 h-full canvas-bg flex flex-col relative">
         <div className="flex-1 overflow-y-auto w-full p-8 pb-32 flex justify-center">
-          <EditorGrid />
+          <BentoGrid editorMode />
         </div>
 
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-[#121214]/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-30">
@@ -29,6 +38,7 @@ export default function DashboardPage() {
       </main>
 
       <SettingsPanel />
+      <LogoutButton />
     </div>
   );
 }
