@@ -1,8 +1,12 @@
+import type { ProfileData } from "@/components/BentoGrid";
+
 type ProfileWidgetProps = {
   className?: string;
+  profile?: ProfileData;
 };
 
-export default function ProfileWidget({ className = "" }: ProfileWidgetProps) {
+export default function ProfileWidget({ className = "", profile }: ProfileWidgetProps) {
+  const avatar = profile?.avatarUrl || "https://ui-avatars.com/api/?name=Alex+Dev&background=random&size=128";
   return (
     <div
       className={`bento-card col-span-2 row-span-2 bg-surface border border-border rounded-[32px] p-8 flex flex-col justify-between relative overflow-hidden group ${className}`}
@@ -11,13 +15,13 @@ export default function ProfileWidget({ className = "" }: ProfileWidgetProps) {
 
       <div className="relative z-10 flex items-start justify-between">
         <img
-          src="https://ui-avatars.com/api/?name=Alex+Dev&background=random&size=128"
+          src={avatar}
           alt="Avatar"
           className="w-20 h-20 rounded-full border-2 border-border"
         />
         <div className="flex gap-2">
           <a
-            href="https://linkedin.com"
+            href={profile?.linkedinUrl || "https://linkedin.com"}
             target="_blank"
             rel="noopener noreferrer"
             className="w-8 h-8 rounded-full bg-border flex items-center justify-center cursor-pointer hover:bg-white/20 transition"
@@ -31,7 +35,7 @@ export default function ProfileWidget({ className = "" }: ProfileWidgetProps) {
             </svg>
           </a>
           <a
-            href="https://github.com"
+            href={profile?.githubUrl || "https://github.com"}
             target="_blank"
             rel="noopener noreferrer"
             className="w-8 h-8 rounded-full bg-border flex items-center justify-center cursor-pointer hover:bg-white/20 transition"
@@ -49,14 +53,13 @@ export default function ProfileWidget({ className = "" }: ProfileWidgetProps) {
 
       <div className="relative z-10 mt-6">
         <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
-          Alex Designer
+          {profile?.name || "Alex Designer"}
         </h1>
         <p className="text-text-secondary text-sm font-medium mt-1">
-          Senior UI/UX & Frontend Developer
+          {profile?.title || "Senior UI/UX & Frontend Developer"}
         </p>
         <p className="text-text-secondary text-sm mt-4 leading-relaxed line-clamp-2">
-          Crafting pixel-perfect SaaS interfaces and obsessing over grid
-          systems. Currently building cool stuff.
+          {profile?.bio || "Crafting pixel-perfect SaaS interfaces and obsessing over grid systems. Currently building cool stuff."}
         </p>
       </div>
     </div>

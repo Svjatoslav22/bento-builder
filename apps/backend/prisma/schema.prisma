@@ -65,6 +65,14 @@ model Profile {
   id          String   @id @default(cuid())
   userId      String   @unique
   username    String   @unique // Для генерації посилання /username
+  isOnboarded Boolean  @default(false)
+  name        String?
+  title       String?
+  bio         String?  @db.Text
+  avatarUrl   String?
+  linkedinUrl String?
+  githubUrl   String?
+  resumeUrl   String?
   plan        String   @default("free") // "free" або "pro"
   
   createdAt   DateTime @default(now())

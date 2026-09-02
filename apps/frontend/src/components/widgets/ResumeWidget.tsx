@@ -1,10 +1,13 @@
 type ResumeWidgetProps = {
   className?: string;
+  resumeUrl?: string | null;
 };
 
-export default function ResumeWidget({ className = "" }: ResumeWidgetProps) {
+export default function ResumeWidget({ className = "", resumeUrl }: ResumeWidgetProps) {
   return (
-    <div
+    <a
+      href={resumeUrl || undefined}
+      download={Boolean(resumeUrl)}
       className={`bento-card col-span-1 row-span-1 bg-white text-black rounded-[24px] p-5 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-gray-100 transition-colors ${className}`}
     >
       <svg
@@ -22,6 +25,6 @@ export default function ResumeWidget({ className = "" }: ResumeWidgetProps) {
       </svg>
       <p className="font-semibold text-sm">Resume</p>
       <p className="text-black/60 text-xs mt-1">PDF, 1.2MB</p>
-    </div>
+    </a>
   );
 }

@@ -14,10 +14,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   const profile = await prisma.profile.findUnique({
     where: { username },
-    select: { userId: true },
+    select: { userId: true, isOnboarded: true, name: true, title: true, bio: true, avatarUrl: true, linkedinUrl: true, githubUrl: true, resumeUrl: true },
   });
 
-  if (!profile) {
+  if (!profile || !profile.isOnboarded) {
     notFound();
   }
 
@@ -26,7 +26,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="antialiased min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
-      <BentoGrid />
+      <BentoGrid profile={profile} />
 
       {isOwner && <EditProfileFab />}
       {session && <LogoutButton />}
