@@ -26,30 +26,30 @@ export default function BentoGrid({ className = "", editorMode = false, profile 
   const widgetClass = "!border-0 !transform-none hover:!transform-none hover:!shadow-none h-full";
 
   return (
-    <div className={`w-full max-w-[900px] grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[160px] ${className}`}>
-      <div className={`col-span-2 row-span-2 relative overflow-hidden rounded-[32px] group ${editorMode ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""}`}>
-        {editorMode && <EditorOverlay roundedClass="rounded-[32px]" />}
-        <ProfileWidget profile={profile} className={`${editorMode ? widgetClass : ""} h-full rounded-[32px]`} />
+    <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 ${className}`}>
+      <div className={`col-span-2 row-span-2 relative overflow-hidden rounded-4xl group ${editorMode ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""}`}>
+        {editorMode && <EditorOverlay roundedClass="rounded-4xl" />}
+        <ProfileWidget profile={profile} className={`${editorMode ? widgetClass : ""} h-full rounded-4xl`} />
       </div>
-      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-[24px] group">
-        {editorMode && <EditorOverlay roundedClass="rounded-[24px]" />}
-        <SpotifyWidget className={`${editorMode ? widgetClass : ""} h-full rounded-[24px]`} />
+      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-3xl group">
+        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
+        <SpotifyWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
       </div>
-      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-[24px] group">
-        {editorMode && <EditorOverlay roundedClass="rounded-[24px]" />}
-        <PortfolioWidget className={`${editorMode ? widgetClass : ""} h-full rounded-[24px] block`} />
+      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-3xl group">
+        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
+        <PortfolioWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl block`} />
       </div>
-      <div className="col-span-1 row-span-1 relative overflow-hidden rounded-[24px] group">
-        {editorMode && <EditorOverlay size="small" roundedClass="rounded-[24px]" />}
-        <LocationWidget className={`${editorMode ? widgetClass : ""} h-full rounded-[24px]`} />
+      <div className="col-span-1 row-span-1 relative overflow-hidden rounded-3xl group">
+        {editorMode && <EditorOverlay size="small" roundedClass="rounded-3xl" />}
+        <LocationWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
       </div>
-      <div className="col-span-1 row-span-1 relative overflow-hidden rounded-[24px] bg-white group">
-        {editorMode && <EditorOverlay size="resume" roundedClass="rounded-[24px]" />}
-        <ResumeWidget resumeUrl={profile?.resumeUrl} className={`${editorMode ? widgetClass : ""} h-full rounded-[24px]`} />
+      <div className="col-span-1 row-span-1 relative overflow-hidden rounded-3xl bg-white group">
+        {editorMode && <EditorOverlay size="resume" roundedClass="rounded-3xl" />}
+        <ResumeWidget resumeUrl={profile?.resumeUrl} className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
       </div>
-      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-[24px] group">
-        {editorMode && <EditorOverlay roundedClass="rounded-[24px]" />}
-        <AiChatWidget className={`${editorMode ? widgetClass : ""} h-full rounded-[24px]`} />
+      <div className="col-span-2 row-span-1 relative overflow-hidden rounded-3xl group">
+        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
+        <AiChatWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
       </div>
     </div>
   );
