@@ -1,8 +1,9 @@
-@import "tailwindcss" source("../..");
-@config "../../tailwind.config.ts";
+@import "tailwindcss";
 
-@source "../components/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../app/**/*.{js,ts,jsx,tsx,mdx}";
+/* Вказуємо точні шляхи для Vercel відносно папки src/app */
+@source "../components";
+@source "../widgets";
+@source "../../src";
 
 @theme {
   --color-background: #09090b;
@@ -18,8 +19,6 @@
     "Liberation Mono", "Courier New", monospace;
 
   --animate-fade-in: fade-in 0.3s ease-out;
-  --animate-blink: blink 1s step-end infinite;
-  --animate-pulse-bar: pulse-bar 1s ease-in-out infinite;
 }
 
 /* === Custom styles from HTML mockups === */
@@ -52,8 +51,14 @@
 }
 
 body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.canvas-bg {
   background-color: #09090b;
-  color: #fafafa;
+  background-image: radial-gradient(circle, #27272a 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .bento-card {
@@ -68,12 +73,6 @@ body {
 
 .cursor-blink {
   animation: blink 1s step-end infinite;
-}
-
-.canvas-bg {
-  background-color: #09090b;
-  background-image: radial-gradient(circle, #27272a 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 .widget-content {
