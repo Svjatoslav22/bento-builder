@@ -54,13 +54,13 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
       {id === "ai-chat" && <AiChatWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
     </SortableWidget>)}
   </div>;
-  return editorMode ? <DndContext sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
+  return editorMode ? <DndContext id="bento-editor" sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
 }
 
 function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDragStart, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDragStart?: (id: string) => void; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={onSelect} className={`${sizeClass} relative overflow-hidden rounded-3xl group ${selected ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""} ${id === "profile" ? "rounded-4xl" : ""}`}>
-    {editorMode && <button type="button" aria-label={`Drag ${id}`} {...attributes} {...listeners} onClick={(event) => { event.stopPropagation(); onDragStart?.(id); }} className="absolute left-3 top-3 z-[60] hidden rounded bg-surface/90 px-2 py-1 text-sm text-text-primary group-hover:block">=</button>}
+    {editorMode && <button suppressHydrationWarning type="button" aria-label={`Drag ${id}`} {...attributes} {...listeners} onClick={(event) => { event.stopPropagation(); onDragStart?.(id); }} className="absolute left-3 top-3 z-[60] hidden rounded bg-surface/90 px-2 py-1 text-sm text-text-primary group-hover:block">=</button>}
     {children}
   </div>;
 }

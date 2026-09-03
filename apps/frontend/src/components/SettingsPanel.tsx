@@ -22,7 +22,9 @@ export default function SettingsPanel({ selectedWidget, selectedSize, onSizeChan
   const [fileName, setFileName] = useState("");
   const sizeLabel = selectedSize === "S" ? "1x1" : selectedSize === "M" ? "2x1" : selectedSize === "Wide" ? "3x1" : "2x2";
   const panelRef = useRef<HTMLElement>(null);
-  useEffect(() => panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [selectedWidget]);
+  useEffect(() => {
+    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [selectedWidget]);
 
   return (
     <aside ref={panelRef} className="w-full md:w-[320px] h-full bg-surface border-l border-border flex flex-col flex-shrink-0 z-20">
