@@ -63,6 +63,7 @@ export function EditorOverlay({
           <button
             type="button"
             {...dragHandleProps}
+            onClick={(event) => { event.stopPropagation(); dragHandleProps?.onClick?.(event); }}
             className="p-1.5 rounded-full hover:bg-surface-elevated text-text-primary cursor-grab"
             title="Drag"
           >
@@ -72,7 +73,7 @@ export function EditorOverlay({
             type="button"
             className="p-1.5 rounded-full hover:bg-red-500/20 text-text-primary hover:text-red-400"
             title="Delete"
-            onClick={onDelete}
+            onClick={(event) => { event.stopPropagation(); onDelete?.(); }}
           >
             <DeleteIcon />
           </button>
@@ -90,6 +91,7 @@ export function EditorOverlay({
           <button
             type="button"
             {...dragHandleProps}
+            onClick={(event) => { event.stopPropagation(); dragHandleProps?.onClick?.(event); }}
             className="p-1.5 rounded-full hover:bg-black/20 text-white cursor-grab"
             title="Drag"
           >
@@ -99,7 +101,7 @@ export function EditorOverlay({
             type="button"
             className="p-1.5 rounded-full hover:bg-red-500/80 text-white"
             title="Delete"
-            onClick={onDelete}
+            onClick={(event) => { event.stopPropagation(); onDelete?.(); }}
           >
             <DeleteIcon />
           </button>
@@ -116,6 +118,7 @@ export function EditorOverlay({
         <button
           type="button"
           {...dragHandleProps}
+          onClick={(event) => { event.stopPropagation(); dragHandleProps?.onClick?.(event); }}
           className="p-2 rounded-full hover:bg-surface-elevated text-text-primary cursor-grab"
           title="Drag"
         >
@@ -126,7 +129,7 @@ export function EditorOverlay({
           type="button"
           className="p-2 rounded-full hover:bg-surface-elevated text-text-primary"
           title="Resize"
-            onClick={onExpand}
+          onClick={(event) => { event.stopPropagation(); onExpand?.(); }}
         >
           <ResizeIcon />
         </button>
@@ -135,7 +138,7 @@ export function EditorOverlay({
           type="button"
           className="p-2 rounded-full hover:bg-red-500/20 text-text-primary hover:text-red-400"
           title="Delete"
-            onClick={onDelete}
+          onClick={(event) => { event.stopPropagation(); onDelete?.(); }}
         >
           <DeleteIcon />
         </button>
