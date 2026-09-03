@@ -1,3 +1,5 @@
+import type { ButtonHTMLAttributes } from "react";
+
 function DragHandleIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,6 +44,7 @@ type EditorOverlayProps = {
   roundedClass?: string;
   onDelete?: () => void;
   onExpand?: () => void;
+  dragHandleProps?: ButtonHTMLAttributes<HTMLButtonElement>;
 };
 
 export function EditorOverlay({
@@ -49,6 +52,7 @@ export function EditorOverlay({
   roundedClass = "rounded-[32px]",
   onDelete,
   onExpand,
+  dragHandleProps,
 }: EditorOverlayProps) {
   if (size === "small") {
     return (
@@ -58,6 +62,7 @@ export function EditorOverlay({
         <div className="flex flex-col gap-1 items-center">
           <button
             type="button"
+            {...dragHandleProps}
             className="p-1.5 rounded-full hover:bg-surface-elevated text-text-primary cursor-grab"
             title="Drag"
           >
@@ -84,6 +89,7 @@ export function EditorOverlay({
         <div className="flex flex-col gap-1 items-center">
           <button
             type="button"
+            {...dragHandleProps}
             className="p-1.5 rounded-full hover:bg-black/20 text-white cursor-grab"
             title="Drag"
           >
@@ -109,6 +115,7 @@ export function EditorOverlay({
       <div className="flex items-center gap-2 bg-surface border border-border p-1.5 rounded-full shadow-2xl">
         <button
           type="button"
+          {...dragHandleProps}
           className="p-2 rounded-full hover:bg-surface-elevated text-text-primary cursor-grab"
           title="Drag"
         >

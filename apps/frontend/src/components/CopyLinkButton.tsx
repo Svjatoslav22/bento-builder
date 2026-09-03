@@ -8,7 +8,7 @@ export default function CopyLinkButton({ value }: { value: string }) {
   async function copy() {
     await navigator.clipboard.writeText(value);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
+    window.setTimeout(() => setCopied(false), 2000);
   }
 
   return (

@@ -51,8 +51,7 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const orderedWidgets = widgets.filter((id) => !removedWidgets.includes(id));
   const grid = <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 pb-25 ${className}`}>
-    {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDragStart={onDragStart}>
-      {editorMode && <EditorOverlay size={id === "location" || id === "resume" ? id === "resume" ? "resume" : "small" : "large"} roundedClass={id === "profile" ? "rounded-4xl" : "rounded-3xl"} onDelete={() => onDeleteWidget?.(id)} onExpand={() => onSelectWidget?.(id)} />}
+    {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDelete={() => onDeleteWidget?.(id)} onExpand={() => onSelectWidget?.(id)}>
       {id === "profile" && <ProfileWidget profile={profile} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "spotify" && <SpotifyWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "portfolio" && <PortfolioWidget className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
@@ -64,10 +63,10 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
   return editorMode ? <DndContext id="bento-editor" sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
 }
 
-function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDragStart, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDragStart?: (id: string) => void; children: React.ReactNode }) {
+function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDelete, onExpand, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDelete: () => void; onExpand: () => void; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={onSelect} className={`${sizeClass} relative overflow-hidden rounded-3xl group ${selected ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""} ${id === "profile" ? "rounded-4xl" : ""}`}>
-    {editorMode && <button suppressHydrationWarning type="button" aria-label={`Drag ${id}`} {...attributes} {...listeners} onClick={(event) => { event.stopPropagation(); onDragStart?.(id); }} className="absolute left-3 top-3 z-[60] hidden rounded bg-surface/90 px-2 py-1 text-sm text-text-primary group-hover:block">=</button>}
+    {editorMode && <EditorOverlay size={id === "location" || id === "resume" ? id === "resume" ? "resume" : "small" : "large"} roundedClass={id === "profile" ? "rounded-4xl" : "rounded-3xl"} onDelete={onDelete} onExpand={onExpand} dragHandleProps={{ ...attributes, ...listeners, onClick: (event) => event.stopPropagation() }} />}
     {children}
   </div>;
 }
