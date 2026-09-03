@@ -13,11 +13,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
 
   const profile = await prisma.profile.findUnique({
-    where: { username },
+    where: { username: username.toLowerCase() },
     include: { widgets: true },
   });
 
-  if (!profile || !profile.isOnboarded) {
+  if (!profile) {
     notFound();
   }
 
