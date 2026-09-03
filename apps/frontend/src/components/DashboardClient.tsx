@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,8 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   const [toast, setToast] = useState<"Saved" | "Failed to save" | "">("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const publicUrl = `https://bento-builder.vercel.app/${profile.username}`;
+  const origin = useSyncExternalStore(() => () => undefined, () => window.location.origin, () => "");
+  const publicLink = origin ? `${origin}/${profile.username}` : "";
 
   useEffect(() => {
     async function loadProfile() {
@@ -108,9 +109,9 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     <div className="antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-background">
       <Sidebar widgetCount={widgets.length} onAddWidget={addWidget} />
       <main className="flex-1 h-full canvas-bg flex flex-col relative">
-        <div className="absolute left-8 right-8 top-5 z-10 flex items-center justify-between gap-4 border border-border bg-surface/90 px-4 py-2.5 backdrop-blur-md"><span className="truncate text-xs text-text-secondary">Your public link: {publicUrl.replace("https://", "")}</span><CopyLinkButton value={publicUrl} /></div>
-        <div className="flex-1 overflow-y-auto w-full p-8 pb-32 pt-24 flex justify-center"><BentoGrid editorMode profile={{ ...profileState, avatarUrl }} widgets={widgets.map((widget) => widget.type)} widgetSizes={sizes} selectedWidget={selectedWidget} onSelectWidget={setSelectedWidget} onDragEnd={dragEnd} onDragStart={setSelectedWidget} onDeleteWidget={removeWidget} city={city} timezone={timezone} /></div>
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-50"><button type="button" onClick={() => window.open(`/${profile.username}`, "_blank")} className="px-5 py-2.5 rounded-xl border border-border text-text-primary text-sm font-medium hover:bg-surface-elevated">Preview</button><button type="button" onClick={save} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 disabled:opacity-60">{isSaving ? "Saving..." : "Save Changes"}</button></div>
+        <div className="absolute left-8 right-8 top-5 z-10 flex items-center justify-between gap-4 border border-border bg-surface/90 px-4 py-2.5 backdrop-blur-md"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><CopyLinkButton value={publicLink} /></div>
+        <div className="flex-1 overflow-y-auto w-full p-8 pb-32 pt-24 flex justify-center"><BentoGrid editorMode isEditing profile={{ ...profileState, avatarUrl }} widgets={widgets.map((widget) => widget.type)} widgetData={widgets} widgetSizes={sizes} selectedWidget={selectedWidget} onSelectWidget={setSelectedWidget} onDragEnd={dragEnd} onDragStart={setSelectedWidget} onDeleteWidget={removeWidget} city={city} timezone={timezone} /></div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-50"><button type="button" onClick={() => window.open(`/${profile.username}`, "_blank")} className="px-5 py-2.5 rounded-xl border border-border text-primary text-sm font-medium hover:bg-surface-elevated">Preview</button><button type="button" onClick={save} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 disabled:opacity-60">{isSaving ? "Saving..." : "Save Changes"}</button></div>
         {toast && <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-border bg-surface px-4 py-2 text-sm text-text-primary shadow-xl">{toast}</div>}
       </main>
       <SettingsPanel activeWidgetType={selectedWidget} selectedWidget={selectedWidget} selectedSize={sizes[selectedWidget] || "M"} onSizeChange={changeSize} onRemove={removeWidget} avatarUrl={avatarUrl} onAvatarChange={(url) => setCropImage(url)} profileFields={profileFields} onProfileChange={(field, value) => setProfileFields((current) => ({ ...current, [field]: value }))} city={city} timezone={timezone} onCityChange={setCity} onTimezoneChange={setTimezone} />

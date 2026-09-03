@@ -1,5 +1,6 @@
 type SpotifyWidgetProps = {
   className?: string;
+  isEditing?: boolean;
 };
 
 export default function SpotifyWidget({ className = "" }: SpotifyWidgetProps) {

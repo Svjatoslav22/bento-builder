@@ -28,6 +28,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     <div className="antialiased min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
       <BentoGrid
         profile={profile}
+        isEditing={false}
+        widgetData={profile.widgets}
         widgets={profile.widgets.sort((a, b) => a.position - b.position).map((widget) => widget.type)}
         widgetSizes={Object.fromEntries(profile.widgets.map((widget) => [widget.type, widget.sizePreset]))}
         city={String((profile.widgets.find((widget) => widget.type === "location")?.config as { city?: string } | undefined)?.city || "Kyiv, UA")}

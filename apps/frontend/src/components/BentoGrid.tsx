@@ -28,6 +28,8 @@ export type WidgetData = {
   config?: unknown;
 };
 
+type WidgetView = { id?: string; type: string; config?: unknown; sizePreset?: string };
+
 type BentoGridProps = {
   className?: string;
   editorMode?: boolean;
@@ -42,25 +44,32 @@ type BentoGridProps = {
   onDeleteWidget?: (id: string) => void;
   city?: string;
   timezone?: string;
+  isEditing?: boolean;
+  widgetData?: WidgetView[];
 };
 
 const allWidgets = ["profile", "spotify", "portfolio", "location", "resume", "ai-chat"];
 const sizeClasses: Record<string, string> = { S: "col-span-1 row-span-1", M: "col-span-2 row-span-1", L: "col-span-2 row-span-2", Wide: "col-span-3 row-span-1" };
 
-export default function BentoGrid({ className = "", editorMode = false, profile, widgetSizes = {}, removedWidgets = [], selectedWidget, onSelectWidget, widgets = allWidgets, onDragEnd, onDragStart, onDeleteWidget, city, timezone }: BentoGridProps) {
+export default function BentoGrid({ className = "", editorMode = false, profile, widgetSizes = {}, removedWidgets = [], selectedWidget, onSelectWidget, widgets = allWidgets, onDragEnd, onDragStart, onDeleteWidget, city, timezone, isEditing = editorMode, widgetData = [] }: BentoGridProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const orderedWidgets = widgets.filter((id) => !removedWidgets.includes(id));
   const grid = <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 pb-25 ${className}`}>
     {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDelete={() => onDeleteWidget?.(id)} onExpand={() => onSelectWidget?.(id)}>
-      {id === "profile" && <ProfileWidget profile={profile} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "spotify" && <SpotifyWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "portfolio" && <PortfolioWidget className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "location" && <LocationWidget city={city} timezone={timezone} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "ai-chat" && <AiChatWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "profile" && <ProfileWidget profile={profile} isEditing={isEditing} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "spotify" && <SpotifyWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "portfolio" && <PortfolioWidget isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "location" && <LocationWidget city={city} timezone={timezone} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "ai-chat" && <AiChatWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
     </SortableWidget>)}
   </div>;
   return editorMode ? <DndContext id="bento-editor" sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
+}
+
+function getContent(widgetData: WidgetView[], type: string) {
+  const config = widgetData.find((widget) => widget.type === type)?.config;
+  return config && typeof config === "object" ? config as { url?: string; resumeUrl?: string } : {};
 }
 
 function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDelete, onExpand, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDelete: () => void; onExpand: () => void; children: React.ReactNode }) {

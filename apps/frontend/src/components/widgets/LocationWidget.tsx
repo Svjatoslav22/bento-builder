@@ -6,6 +6,7 @@ type LocationWidgetProps = {
   className?: string;
   city?: string;
   timezone?: string;
+  isEditing?: boolean;
 };
 
 export default function LocationWidget({ className = "", city = "Kyiv, UA", timezone = "Europe/Kyiv" }: LocationWidgetProps) {

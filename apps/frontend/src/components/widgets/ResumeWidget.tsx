@@ -1,13 +1,17 @@
 type ResumeWidgetProps = {
   className?: string;
   resumeUrl?: string | null;
+  isEditing?: boolean;
+  widget?: { content?: { resumeUrl?: string } };
 };
 
-export default function ResumeWidget({ className = "", resumeUrl }: ResumeWidgetProps) {
+export default function ResumeWidget({ className = "", resumeUrl, isEditing = false, widget }: ResumeWidgetProps) {
+  const href = widget?.content?.resumeUrl || resumeUrl || "#";
   return (
     <a
-      href={resumeUrl || undefined}
-      download={Boolean(resumeUrl)}
+      href={href}
+      download={Boolean(href && href !== "#")}
+      onClick={(event) => { if (isEditing) event.preventDefault(); }}
       className={`bento-card col-span-1 row-span-1 bg-white text-black rounded-[24px] p-5 flex flex-col justify-center items-center text-center cursor-pointer hover:bg-gray-100 transition-colors ${className}`}
     >
       <svg

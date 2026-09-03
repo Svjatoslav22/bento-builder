@@ -3,9 +3,10 @@ import type { ProfileData } from "@/components/BentoGrid";
 type ProfileWidgetProps = {
   className?: string;
   profile?: ProfileData;
+  isEditing?: boolean;
 };
 
-export default function ProfileWidget({ className = "", profile }: ProfileWidgetProps) {
+export default function ProfileWidget({ className = "", profile, isEditing = false }: ProfileWidgetProps) {
   const avatar = profile?.avatarUrl || "https://ui-avatars.com/api/?name=Alex+Dev&background=random&size=128";
   return (
     <div
@@ -24,6 +25,7 @@ export default function ProfileWidget({ className = "", profile }: ProfileWidget
             href={profile?.linkedinUrl || "https://linkedin.com"}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(event) => { if (isEditing) event.preventDefault(); }}
             className="w-8 h-8 rounded-full bg-border flex items-center justify-center cursor-pointer hover:bg-white/20 transition"
           >
             <svg
@@ -38,6 +40,7 @@ export default function ProfileWidget({ className = "", profile }: ProfileWidget
             href={profile?.githubUrl || "https://github.com"}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(event) => { if (isEditing) event.preventDefault(); }}
             className="w-8 h-8 rounded-full bg-border flex items-center justify-center cursor-pointer hover:bg-white/20 transition"
           >
             <svg

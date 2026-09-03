@@ -1,11 +1,15 @@
 type PortfolioWidgetProps = {
   className?: string;
+  isEditing?: boolean;
+  widget?: { content?: { url?: string } };
 };
 
-export default function PortfolioWidget({ className = "" }: PortfolioWidgetProps) {
+export default function PortfolioWidget({ className = "", isEditing = false, widget }: PortfolioWidgetProps) {
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => { if (isEditing) event.preventDefault(); };
   return (
     <a
-      href="https://example.com/portfolio"
+      href={widget?.content?.url || "#"}
+      onClick={handleClick}
       target="_blank"
       rel="noopener noreferrer"
       className={`bento-card col-span-2 row-span-1 bg-surface border border-border rounded-[24px] p-6 relative overflow-hidden group block hover:border-[#3F3F46] transition-all ${className}`}

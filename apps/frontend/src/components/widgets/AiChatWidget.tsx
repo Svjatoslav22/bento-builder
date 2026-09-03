@@ -1,5 +1,6 @@
 type AiChatWidgetProps = {
   className?: string;
+  isEditing?: boolean;
 };
 
 export default function AiChatWidget({ className = "" }: AiChatWidgetProps) {
