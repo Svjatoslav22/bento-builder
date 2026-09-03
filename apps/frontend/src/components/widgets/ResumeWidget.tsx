@@ -2,11 +2,13 @@ type ResumeWidgetProps = {
   className?: string;
   resumeUrl?: string | null;
   isEditing?: boolean;
-  widget?: { content?: { resumeUrl?: string } };
+  widget?: { content?: { resumeUrl?: string; filename?: string } };
 };
 
 export default function ResumeWidget({ className = "", resumeUrl, isEditing = false, widget }: ResumeWidgetProps) {
-  const href = widget?.content?.resumeUrl || resumeUrl || "#";
+  const content = widget?.content;
+  const href = content?.resumeUrl || resumeUrl || "#";
+  const filename = content?.filename;
   return (
     <a
       href={href}
@@ -28,7 +30,7 @@ export default function ResumeWidget({ className = "", resumeUrl, isEditing = fa
         />
       </svg>
       <p className="font-semibold text-sm">Resume</p>
-      <p className="text-black/60 text-xs mt-1">PDF, 1.2MB</p>
+      <p className="text-black/60 text-xs mt-1">{filename || "PDF, 1.2MB"}</p>
     </a>
   );
 }
