@@ -21,6 +21,13 @@ export type ProfileData = {
   resumeUrl?: string | null;
 };
 
+export type WidgetData = {
+  id?: string;
+  type: string;
+  sizePreset?: string;
+  config?: unknown;
+};
+
 type BentoGridProps = {
   className?: string;
   editorMode?: boolean;

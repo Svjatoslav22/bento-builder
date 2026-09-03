@@ -9,7 +9,7 @@ type LocationWidgetProps = {
 };
 
 export default function LocationWidget({ className = "", city = "Kyiv, UA", timezone = "Europe/Kyiv" }: LocationWidgetProps) {
-  const [time, setTime] = useState(() => formatTime(timezone));
+  const [time, setTime] = useState("");
 
   useEffect(() => {
     const updateTime = () => setTime(formatTime(timezone));

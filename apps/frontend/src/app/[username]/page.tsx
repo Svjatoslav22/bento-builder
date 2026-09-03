@@ -14,7 +14,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   const profile = await prisma.profile.findUnique({
     where: { username },
-    select: { userId: true, isOnboarded: true, name: true, title: true, bio: true, avatarUrl: true, linkedinUrl: true, githubUrl: true, resumeUrl: true },
+    include: { widgets: true },
   });
 
   if (!profile || !profile.isOnboarded) {
@@ -26,7 +26,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="antialiased min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
-      <BentoGrid profile={profile} />
+      <BentoGrid
+        profile={profile}
+        widgets={profile.widgets.sort((a, b) => a.position - b.position).map((widget) => widget.type)}
+        widgetSizes={Object.fromEntries(profile.widgets.map((widget) => [widget.type, widget.sizePreset]))}
+        city={String((profile.widgets.find((widget) => widget.type === "location")?.config as { city?: string } | undefined)?.city || "Kyiv, UA")}
+        timezone={String((profile.widgets.find((widget) => widget.type === "location")?.config as { timezone?: string } | undefined)?.timezone || "Europe/Kyiv")}
+      />
 
       {isOwner && <EditProfileFab />}
       {session && <LogoutButton />}

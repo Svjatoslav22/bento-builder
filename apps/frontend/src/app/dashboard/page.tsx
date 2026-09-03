@@ -12,7 +12,7 @@ export default async function DashboardPage() {
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
-    select: { username: true, isOnboarded: true, name: true, title: true, bio: true, avatarUrl: true, linkedinUrl: true, githubUrl: true, resumeUrl: true },
+    include: { widgets: true },
   });
 
   if (!profile?.isOnboarded) redirect("/onboarding");

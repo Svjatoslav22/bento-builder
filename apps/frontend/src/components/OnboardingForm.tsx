@@ -10,7 +10,7 @@ export default function OnboardingForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({ username: "", name: "" });
-  const [saving, setSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({ username: "", name: "", title: "", bio: "", linkedinUrl: "", githubUrl: "" });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -34,9 +34,32 @@ export default function OnboardingForm() {
     };
     setFieldErrors(nextErrors);
     if (nextErrors.username || nextErrors.name) return;
-    setSaving(true);
+    setIsSubmitting(true);
     setError("");
-    console.log("submit profile", { ...form, avatar: avatarFile, resume: resumeFile });
+    const response = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        avatarUrl: avatarPreview || null,
+        resumeUrl: resumeFile ? resumeFile.name : null,
+        defaultWidgets: [
+          { type: "profile", sizePreset: "L", config: {} },
+          { type: "spotify", sizePreset: "M", config: {} },
+          { type: "portfolio", sizePreset: "M", config: {} },
+          { type: "location", sizePreset: "S", config: { city: "Kyiv, UA", timezone: "Europe/Kyiv" } },
+          { type: "resume", sizePreset: "S", config: {} },
+          { type: "ai-chat", sizePreset: "M", config: {} },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      if (response.status === 409) setFieldErrors((current) => ({ ...current, username: "This username is already taken" }));
+      else setError(data?.error || "Could not create your profile");
+      setIsSubmitting(false);
+      return;
+    }
     router.push("/dashboard");
   }
 
@@ -54,7 +77,7 @@ export default function OnboardingForm() {
       <label className="block text-xs font-medium text-text-secondary">LinkedIn URL<input name="linkedinUrl" value={form.linkedinUrl} onChange={(event) => updateField("linkedinUrl", event.target.value)} type="url" placeholder="https://linkedin.com/in/yourname" className={`${inputClass} mt-1.5`} /></label>
       <label className="block text-xs font-medium text-text-secondary">GitHub URL<input name="githubUrl" value={form.githubUrl} onChange={(event) => updateField("githubUrl", event.target.value)} type="url" placeholder="https://github.com/yourname" className={`${inputClass} mt-1.5`} /></label>
       {error && <p className="text-sm text-red-400">{error}</p>}
-      <button disabled={saving} type="submit" className="w-full rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-gray-200 disabled:cursor-wait disabled:opacity-60">{saving ? "Saving..." : "Complete Profile"}</button>
+      <button disabled={isSubmitting} type="submit" className="w-full rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-gray-200 disabled:cursor-wait disabled:opacity-60">{isSubmitting ? "Creating..." : "Complete Profile"}</button>
     </form>
     {cropImage && <CropModal image={cropImage} onCancel={() => setCropImage("")} onSave={(cropped) => { setAvatarPreview(cropped); setAvatarFile(null); setCropImage(""); }} />}
     </>

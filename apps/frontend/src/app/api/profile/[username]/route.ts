@@ -8,19 +8,7 @@ export async function GET(
   const { username } = await params;
   const profile = await prisma.profile.findUnique({
     where: { username: username.toLowerCase() },
-    select: {
-      id: true,
-      userId: true,
-      username: true,
-      isOnboarded: true,
-      name: true,
-      title: true,
-      bio: true,
-      avatarUrl: true,
-      linkedinUrl: true,
-      githubUrl: true,
-      resumeUrl: true,
-    },
+    include: { widgets: true },
   });
 
   return profile
