@@ -77,12 +77,14 @@ const libraryItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: number; onAddWidget: (name: string) => void }) {
+  const atLimit = widgetCount >= 6;
   return (
     <aside className="w-full md:w-[260px] h-full bg-surface border-r border-border flex flex-col flex-shrink-0 z-20">
       <div className="p-5 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary tracking-wide">
           Add Widget
+          {atLimit && <span className="ml-2 text-[10px] font-normal text-text-secondary">Max 6 widgets reached</span>}
         </h2>
         <div className="w-6 h-6 rounded bg-surface-elevated border border-border flex items-center justify-center text-text-secondary cursor-pointer hover:text-white transition">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,9 +104,12 @@ export default function Sidebar() {
         </p>
 
         {libraryItems.map((item) => (
-          <div
+          <button
             key={item.name}
-            className="group flex items-center gap-3 p-3 bg-background border border-border rounded-xl cursor-grab hover:border-border-hover active:cursor-grabbing transition-colors"
+            type="button"
+            disabled={atLimit}
+            onClick={() => onAddWidget(item.name)}
+            className={`group flex w-full items-center gap-3 p-3 bg-background border border-border rounded-xl hover:border-border-hover transition-colors ${atLimit ? "pointer-events-none cursor-not-allowed opacity-40" : "cursor-grab active:cursor-grabbing"}`}
           >
             <div
               className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.iconClass}`}
@@ -128,7 +133,7 @@ export default function Sidebar() {
                 d="M4 8h16M4 16h16"
               />
             </svg>
-          </div>
+          </button>
         ))}
       </div>
     </aside>

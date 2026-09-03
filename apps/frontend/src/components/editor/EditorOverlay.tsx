@@ -40,11 +40,15 @@ function DeleteIcon() {
 type EditorOverlayProps = {
   size?: "large" | "small" | "resume";
   roundedClass?: string;
+  onDelete?: () => void;
+  onExpand?: () => void;
 };
 
 export function EditorOverlay({
   size = "large",
   roundedClass = "rounded-[32px]",
+  onDelete,
+  onExpand,
 }: EditorOverlayProps) {
   if (size === "small") {
     return (
@@ -63,6 +67,7 @@ export function EditorOverlay({
             type="button"
             className="p-1.5 rounded-full hover:bg-red-500/20 text-text-primary hover:text-red-400"
             title="Delete"
+            onClick={onDelete}
           >
             <DeleteIcon />
           </button>
@@ -88,6 +93,7 @@ export function EditorOverlay({
             type="button"
             className="p-1.5 rounded-full hover:bg-red-500/80 text-white"
             title="Delete"
+            onClick={onDelete}
           >
             <DeleteIcon />
           </button>
@@ -113,6 +119,7 @@ export function EditorOverlay({
           type="button"
           className="p-2 rounded-full hover:bg-surface-elevated text-text-primary"
           title="Resize"
+            onClick={onExpand}
         >
           <ResizeIcon />
         </button>
@@ -121,6 +128,7 @@ export function EditorOverlay({
           type="button"
           className="p-2 rounded-full hover:bg-red-500/20 text-text-primary hover:text-red-400"
           title="Delete"
+            onClick={onDelete}
         >
           <DeleteIcon />
         </button>

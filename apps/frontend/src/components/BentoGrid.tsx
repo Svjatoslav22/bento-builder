@@ -1,5 +1,8 @@
 "use client";
 
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import ProfileWidget from "@/components/widgets/ProfileWidget";
 import SpotifyWidget from "@/components/widgets/SpotifyWidget";
 import PortfolioWidget from "@/components/widgets/PortfolioWidget";
@@ -7,16 +10,6 @@ import LocationWidget from "@/components/widgets/LocationWidget";
 import ResumeWidget from "@/components/widgets/ResumeWidget";
 import AiChatWidget from "@/components/widgets/AiChatWidget";
 import { EditorOverlay } from "@/components/editor/EditorOverlay";
-
-type BentoGridProps = {
-  className?: string;
-  editorMode?: boolean;
-  profile?: ProfileData;
-  widgetSizes?: Record<string, string>;
-  removedWidgets?: string[];
-  selectedWidget?: string;
-  onSelectWidget?: (id: string) => void;
-};
 
 export type ProfileData = {
   name?: string | null;
@@ -28,38 +21,46 @@ export type ProfileData = {
   resumeUrl?: string | null;
 };
 
-export default function BentoGrid({ className = "", editorMode = false, profile, widgetSizes = {}, removedWidgets = [], selectedWidget, onSelectWidget }: BentoGridProps) {
-  const widgetClass = "!border-0 !transform-none hover:!transform-none hover:!shadow-none h-full";
-  const sizeClasses: Record<string, string> = { S: "col-span-1 row-span-1", M: "col-span-2 row-span-1", L: "col-span-2 row-span-2", Wide: "col-span-3 row-span-1" };
-  const cellClass = (id: string, fallback: string) => `${sizeClasses[widgetSizes[id] || ""] || fallback} relative overflow-hidden rounded-3xl group ${editorMode && selectedWidget === id ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""}`;
-  const select = (id: string) => editorMode && onSelectWidget?.(id);
+type BentoGridProps = {
+  className?: string;
+  editorMode?: boolean;
+  profile?: ProfileData;
+  widgetSizes?: Record<string, string>;
+  removedWidgets?: string[];
+  selectedWidget?: string;
+  onSelectWidget?: (id: string) => void;
+  widgets?: string[];
+  onDragEnd?: (event: DragEndEvent) => void;
+  onDragStart?: (id: string) => void;
+  onDeleteWidget?: (id: string) => void;
+  city?: string;
+  timezone?: string;
+};
 
-  return (
-    <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 ${className}`}>
-      {!removedWidgets.includes("profile") && <div onClick={() => select("profile")} className={`${cellClass("profile", "col-span-2 row-span-2")} rounded-4xl`}>
-        {editorMode && <EditorOverlay roundedClass="rounded-4xl" />}
-        <ProfileWidget profile={profile} className={`${editorMode ? widgetClass : ""} h-full rounded-4xl`} />
-      </div>}
-      {!removedWidgets.includes("spotify") && <div onClick={() => select("spotify")} className={cellClass("spotify", "col-span-2 row-span-1")}>
-        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
-        <SpotifyWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
-      </div>}
-      {!removedWidgets.includes("portfolio") && <div onClick={() => select("portfolio")} className={cellClass("portfolio", "col-span-2 row-span-1")}>
-        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
-        <PortfolioWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl block`} />
-      </div>}
-      {!removedWidgets.includes("location") && <div onClick={() => select("location")} className={cellClass("location", "col-span-1 row-span-1")}>
-        {editorMode && <EditorOverlay size="small" roundedClass="rounded-3xl" />}
-        <LocationWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
-      </div>}
-      {!removedWidgets.includes("resume") && <div onClick={() => select("resume")} className={`${cellClass("resume", "col-span-1 row-span-1")} bg-white`}>
-        {editorMode && <EditorOverlay size="resume" roundedClass="rounded-3xl" />}
-        <ResumeWidget resumeUrl={profile?.resumeUrl} className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
-      </div>}
-      {!removedWidgets.includes("ai-chat") && <div onClick={() => select("ai-chat")} className={cellClass("ai-chat", "col-span-2 row-span-1")}>
-        {editorMode && <EditorOverlay roundedClass="rounded-3xl" />}
-        <AiChatWidget className={`${editorMode ? widgetClass : ""} h-full rounded-3xl`} />
-      </div>}
-    </div>
-  );
+const allWidgets = ["profile", "spotify", "portfolio", "location", "resume", "ai-chat"];
+const sizeClasses: Record<string, string> = { S: "col-span-1 row-span-1", M: "col-span-2 row-span-1", L: "col-span-2 row-span-2", Wide: "col-span-3 row-span-1" };
+
+export default function BentoGrid({ className = "", editorMode = false, profile, widgetSizes = {}, removedWidgets = [], selectedWidget, onSelectWidget, widgets = allWidgets, onDragEnd, onDragStart, onDeleteWidget, city, timezone }: BentoGridProps) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const orderedWidgets = widgets.filter((id) => !removedWidgets.includes(id));
+  const grid = <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 pb-25 ${className}`}>
+    {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDragStart={onDragStart}>
+      {editorMode && <EditorOverlay size={id === "location" || id === "resume" ? id === "resume" ? "resume" : "small" : "large"} roundedClass={id === "profile" ? "rounded-4xl" : "rounded-3xl"} onDelete={() => onDeleteWidget?.(id)} onExpand={() => onSelectWidget?.(id)} />}
+      {id === "profile" && <ProfileWidget profile={profile} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "spotify" && <SpotifyWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "portfolio" && <PortfolioWidget className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "location" && <LocationWidget city={city} timezone={timezone} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "ai-chat" && <AiChatWidget className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+    </SortableWidget>)}
+  </div>;
+  return editorMode ? <DndContext sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
+}
+
+function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDragStart, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDragStart?: (id: string) => void; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={onSelect} className={`${sizeClass} relative overflow-hidden rounded-3xl group ${selected ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""} ${id === "profile" ? "rounded-4xl" : ""}`}>
+    {editorMode && <button type="button" aria-label={`Drag ${id}`} {...attributes} {...listeners} onClick={(event) => { event.stopPropagation(); onDragStart?.(id); }} className="absolute left-3 top-3 z-[60] hidden rounded bg-surface/90 px-2 py-1 text-sm text-text-primary group-hover:block">=</button>}
+    {children}
+  </div>;
 }
