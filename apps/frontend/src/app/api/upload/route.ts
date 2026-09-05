@@ -22,9 +22,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "File is too large" }, { status: 413 });
     }
 
-    const blob = await put(`resumes/${session.user.id}/${file.name}`, file, {
+    const blob = await put(file.name, file, {
       access: "public",
-      addRandomSuffix: true,
     });
 
     return NextResponse.json({ url: blob.url });
