@@ -3,12 +3,20 @@
 import { Music, Pause, Play, Radio } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-type NowPlayingResponse = {
+type IcecastSource = {
+  title?: string;
+};
+
+type IcecastResponse = {
+  icestats?: {
+    source?: IcecastSource | IcecastSource[];
+  };
+};
+
+type NowPlayingState = {
   isPlaying: boolean;
   title?: string;
   artist?: string;
-  radioName?: string;
-  listenUrl?: string;
 };
 
 type RadioWidgetProps = {
@@ -16,8 +24,34 @@ type RadioWidgetProps = {
   isEditing?: boolean;
 };
 
-const STREAM_URL = "https://yantarne.fm/yantarne;";
+const STREAM_URL = "https://complex.in.ua/yantarne";
 const POLL_INTERVAL_MS = 10_000;
+
+function parseArtistAndTitle(rawTitle: string) {
+  const trimmed = rawTitle.trim();
+
+  if (!trimmed) {
+    return { artist: "", title: "" };
+  }
+
+  const dashIndex = trimmed.indexOf(" - ");
+  if (dashIndex !== -1) {
+    return {
+      artist: trimmed.slice(0, dashIndex).trim(),
+      title: trimmed.slice(dashIndex + 3).trim(),
+    };
+  }
+
+  const simpleDashIndex = trimmed.indexOf("-");
+  if (simpleDashIndex !== -1) {
+    return {
+      artist: trimmed.slice(0, simpleDashIndex).trim(),
+      title: trimmed.slice(simpleDashIndex + 1).trim(),
+    };
+  }
+
+  return { artist: "", title: trimmed };
+}
 
 function EqualizerBars() {
   return (
@@ -36,7 +70,7 @@ export default function RadioWidget({
 }: RadioWidgetProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [nowPlaying, setNowPlaying] = useState<NowPlayingResponse>({
+  const [nowPlaying, setNowPlaying] = useState<NowPlayingState>({
     isPlaying: false,
   });
 
@@ -45,15 +79,28 @@ export default function RadioWidget({
 
     async function fetchNowPlaying() {
       try {
-        const response = await fetch("/api/now-playing", {
-          cache: "no-store",
-        });
-        const data = (await response.json()) as NowPlayingResponse;
+        const response = await fetch(
+          `https://complex.in.ua/yantarne?_ts=${Date.now()}`,
+        );
+        const proxyData = await response.json();
+        const data = JSON.parse(proxyData.contents) as IcecastResponse;
+
+        const source = Array.isArray(data?.icestats?.source)
+          ? data.icestats.source[0]
+          : data?.icestats?.source;
+        const rawTitle = source?.title;
+
+        if (!rawTitle) {
+          throw new Error("No track title found in Icecast response");
+        }
+
+        const { artist, title } = parseArtistAndTitle(rawTitle);
 
         if (isMounted) {
-          setNowPlaying(data);
+          setNowPlaying({ isPlaying: true, title, artist });
         }
-      } catch {
+      } catch (error) {
+        console.error("Radio metadata fetch failed:", error);
         if (isMounted) {
           setNowPlaying({ isPlaying: false });
         }
@@ -83,6 +130,7 @@ export default function RadioWidget({
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.pause();
+      audio.src = "";
     };
   }, []);
 
@@ -92,30 +140,31 @@ export default function RadioWidget({
     if (isEditing || !audioRef.current) return;
 
     if (!isAudioPlaying) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsAudioPlaying(true))
-          .catch((err) => {
-            console.error("Audio playback failed:", err);
-            setIsAudioPlaying(false);
-          });
-      }
+      audioRef.current.src = STREAM_URL;
+      audioRef.current.load();
+      audioRef.current
+        .play()
+        .then(() => setIsAudioPlaying(true))
+        .catch((err) => {
+          console.error("Playback failed:", err);
+          setIsAudioPlaying(false);
+        });
     } else {
       audioRef.current.pause();
+      audioRef.current.src = "";
       setIsAudioPlaying(false);
     }
   }
 
   const title = nowPlaying.title || "Yantarne FM";
-  const artist = nowPlaying.artist || nowPlaying.radioName || "Онлайн-радіо";
+  const artist = nowPlaying.artist || "Онлайн-радіо";
   const isLive = nowPlaying.isPlaying;
 
   return (
     <div
       className={`bento-card col-span-2 row-span-1 relative overflow-hidden rounded-[24px] border border-red-900/30 bg-gradient-to-br from-red-900/20 to-black p-6 transition hover:border-red-700/40 ${className}`}
     >
-      <audio ref={audioRef} src={STREAM_URL} preload="none" />
+      <audio ref={audioRef} preload="none" />
 
       <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-red-500/10 blur-[40px]" />
 
