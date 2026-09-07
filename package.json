@@ -16,8 +16,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.60",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.9.1",
+    "ai": "^7.0.93",
     "pg": "^8.23.0"
   }
 }
