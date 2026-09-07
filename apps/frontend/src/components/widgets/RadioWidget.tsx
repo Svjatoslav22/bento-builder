@@ -16,7 +16,7 @@ type RadioWidgetProps = {
   isEditing?: boolean;
 };
 
-const STREAM_URL = "https://yantarne.fm/yantarne?type=.mp3";
+const STREAM_URL = "https://yantarne.fm/yantarne;";
 const POLL_INTERVAL_MS = 10_000;
 
 function EqualizerBars() {

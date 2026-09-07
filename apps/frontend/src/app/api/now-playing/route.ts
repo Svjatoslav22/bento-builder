@@ -52,17 +52,24 @@ export async function GET() {
   try {
     const response = await fetch(YANTARNE_STATUS_URL, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        Accept: "application/json, text/plain, */*",
-        "Cache-Control": "no-cache",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "application/json",
       },
+      cache: "no-store",
     });
 
     if (!response.ok) {
       throw new Error(`Yantarne FM status request failed: ${response.status}`);
     }
 
-    const data = (await response.json()) as IcecastResponse;
+    const textData = await response.text();
+
+    if (textData.trim().startsWith("<")) {
+      throw new Error("Icecast returned HTML instead of JSON");
+    }
+
+    const data = JSON.parse(textData) as IcecastResponse;
     const rawTitle = getRawTitle(data);
 
     if (!rawTitle) {
