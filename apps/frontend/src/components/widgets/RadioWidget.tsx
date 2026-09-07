@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 type IcecastSource = {
   title?: string;
+  listenurl?: string;
 };
 
 type IcecastResponse = {
@@ -25,6 +26,7 @@ type RadioWidgetProps = {
 };
 
 const STREAM_URL = "https://complex.in.ua/yantarne";
+const STATUS_URL = "https://complex.in.ua/status-json.xsl";
 const POLL_INTERVAL_MS = 10_000;
 
 function parseArtistAndTitle(rawTitle: string) {
@@ -80,15 +82,17 @@ export default function RadioWidget({
     async function fetchNowPlaying() {
       try {
         const response = await fetch(
-          `https://complex.in.ua/yantarne?_ts=${Date.now()}`,
+          "https://api.allorigins.win/raw?url=" + encodeURIComponent(STATUS_URL),
         );
-        const proxyData = await response.json();
-        const data = JSON.parse(proxyData.contents) as IcecastResponse;
+        const data = (await response.json()) as IcecastResponse;
 
-        const source = Array.isArray(data?.icestats?.source)
-          ? data.icestats.source[0]
-          : data?.icestats?.source;
-        const rawTitle = source?.title;
+        const sources = Array.isArray(data?.icestats?.source)
+          ? data.icestats.source
+          : [data?.icestats?.source];
+        const mount = sources.find(
+          (s) => s && s.listenurl && s.listenurl.includes("yantarne"),
+        );
+        const rawTitle = mount?.title;
 
         if (!rawTitle) {
           throw new Error("No track title found in Icecast response");
@@ -102,7 +106,11 @@ export default function RadioWidget({
       } catch (error) {
         console.error("Radio metadata fetch failed:", error);
         if (isMounted) {
-          setNowPlaying({ isPlaying: false });
+          setNowPlaying({
+            isPlaying: false,
+            title: "Невідомий трек",
+            artist: "",
+          });
         }
       }
     }
@@ -130,7 +138,6 @@ export default function RadioWidget({
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.pause();
-      audio.src = "";
     };
   }, []);
 
@@ -140,18 +147,12 @@ export default function RadioWidget({
     if (isEditing || !audioRef.current) return;
 
     if (!isAudioPlaying) {
-      audioRef.current.src = STREAM_URL;
-      audioRef.current.load();
       audioRef.current
-        .play()
+        ?.play()
         .then(() => setIsAudioPlaying(true))
-        .catch((err) => {
-          console.error("Playback failed:", err);
-          setIsAudioPlaying(false);
-        });
+        .catch(console.error);
     } else {
-      audioRef.current.pause();
-      audioRef.current.src = "";
+      audioRef.current?.pause();
       setIsAudioPlaying(false);
     }
   }
@@ -164,7 +165,7 @@ export default function RadioWidget({
     <div
       className={`bento-card col-span-2 row-span-1 relative overflow-hidden rounded-[24px] border border-red-900/30 bg-gradient-to-br from-red-900/20 to-black p-6 transition hover:border-red-700/40 ${className}`}
     >
-      <audio ref={audioRef} preload="none" />
+      <audio ref={audioRef} src={STREAM_URL} preload="none" />
 
       <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-red-500/10 blur-[40px]" />
 
