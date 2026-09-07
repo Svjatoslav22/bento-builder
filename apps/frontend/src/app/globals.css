@@ -50,6 +50,27 @@
   }
 }
 
+.equalizer-bar {
+  height: 100%;
+  animation: pulse-bar 0.9s ease-in-out infinite;
+}
+
+.equalizer-bar-1 {
+  animation-delay: 0s;
+}
+
+.equalizer-bar-2 {
+  animation-delay: 0.15s;
+}
+
+.equalizer-bar-3 {
+  animation-delay: 0.3s;
+}
+
+.equalizer-bar-4 {
+  animation-delay: 0.45s;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-text-primary);

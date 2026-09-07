@@ -4,7 +4,7 @@ import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "
 import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import ProfileWidget from "@/components/widgets/ProfileWidget";
-import SpotifyWidget from "@/components/widgets/SpotifyWidget";
+import RadioWidget from "@/components/widgets/RadioWidget";
 import PortfolioWidget from "@/components/widgets/PortfolioWidget";
 import LocationWidget from "@/components/widgets/LocationWidget";
 import ResumeWidget from "@/components/widgets/ResumeWidget";
@@ -59,7 +59,7 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
   const grid = <div className={`w-full max-w-225 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-40 pb-25 ${className}`}>
     {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDelete={() => onDeleteWidget?.(id)} onResize={() => onResizeWidget?.(id)}>
       {id === "profile" && <ProfileWidget profile={profile} isEditing={isEditing} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "spotify" && <SpotifyWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "spotify" && <RadioWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "portfolio" && <PortfolioWidget isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "location" && <LocationWidget city={city} timezone={timezone} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}

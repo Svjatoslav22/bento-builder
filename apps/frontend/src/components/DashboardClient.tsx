@@ -111,7 +111,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
 
   function addWidget(name: string) {
     if (widgets.length >= MAX_WIDGETS) return;
-    const id = name === "Profile Info" ? "profile" : name.toLowerCase().replace(" ", "-");
+    const id = name === "Profile Info" ? "profile" : name === "Yantarne FM" ? "spotify" : name.toLowerCase().replace(" ", "-");
     if (!widgets.some((widget) => widget.type === id)) setWidgets((current) => [...current, { type: id, sizePreset: id === "profile" ? "L" : "M", config: {} } as DashboardWidget]);
   }
 

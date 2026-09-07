@@ -1,6 +1,7 @@
 "use client";
 
 import { useChat, type Message } from "ai/react";
+import ReactMarkdown from "react-markdown";
 
 type AiChatWidgetProps = {
   className?: string;
@@ -16,9 +17,9 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
 
   return (
     <div
-      className={`bento-card col-span-2 row-span-1 bg-surface border border-border rounded-[24px] p-4 flex flex-col justify-between ${className}`}
+      className={`bento-card col-span-2 row-span-1 h-full min-h-0 bg-surface border border-border rounded-[24px] p-4 flex flex-col justify-between ${className}`}
     >
-      <div className="flex-1 overflow-hidden px-2 pt-1 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto pr-2 px-2 pt-1 space-y-3">
         {messages.length === 0 && (
           <div className="flex gap-3 items-start opacity-70">
             <div className="w-6 h-6 rounded-full bg-border flex-shrink-0 flex items-center justify-center text-[10px]">
@@ -40,13 +41,13 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
               {message.role === "user" ? "You" : "AI"}
             </div>
             <div
-              className={`text-sm text-text-secondary font-mono max-w-[80%] ${
+              className={`prose prose-invert max-w-none text-sm break-words text-text-secondary font-mono max-w-[80%] [&_strong]:font-bold [&_p]:my-0 ${
                 message.role === "user"
                   ? "bg-white/10 rounded-xl py-2 px-3"
                   : ""
               }`}
             >
-              {message.content}
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
         ))}
