@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { CoreMessage, streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -18,7 +18,7 @@ const openai = createOpenAI({
 export async function POST(req: Request) {
   try {
     const { messages, widgetId } = (await req.json()) as {
-      messages: Array<{ role: string; content: string }>;
+      messages: CoreMessage[];
       widgetId: string;
     };
 
@@ -32,9 +32,11 @@ export async function POST(req: Request) {
     }
 
     const profile = widget.profile;
-    const systemPrompt = `Ти цифровий асистент, якого звати AI-клон. Ти відповідаєш на питання від імені розробника. Його звати ${profile.name}, він ${profile.title}. Його біо: ${profile.bio}. Додатковий контекст: ${widget.content?.context || ""}. Відповідай коротко і професійно`;
+    const widgetConfig = widget.config as Record<string, unknown>;
+    const widgetContext = (widgetConfig?.context as string) || "";
+    const systemPrompt = `Ти цифровий асистент, якого звати AI-клон. Ти відповідаєш на питання від імені розробника. Його звати ${profile.name}, він ${profile.title}. Його біо: ${profile.bio}. Додатковий контекст: ${widgetContext}. Відповідай коротко і професійно`;
 
-    const result = streamText({
+    const result = await streamText({
       model: openai("meta-llama/llama-3.1-8b-instruct"),
       system: systemPrompt,
       messages,

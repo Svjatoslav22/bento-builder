@@ -1,6 +1,6 @@
 "use client";
 
-import { useChat } from "ai/react";
+import { useChat, type Message } from "ai/react";
 
 type AiChatWidgetProps = {
   className?: string;
@@ -12,7 +12,6 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
     body: { widgetId: widget?.id || "" },
-    disabled: isEditing,
   });
 
   return (
@@ -30,9 +29,9 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
             </p>
           </div>
         )}
-        {messages.map((message, index) => (
+        {messages.map((message: Message) => (
           <div
-            key={index}
+            key={message.id}
             className={`flex gap-3 items-start ${
               message.role === "user" ? "flex-row-reverse" : ""
             }`}
