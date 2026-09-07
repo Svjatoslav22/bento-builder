@@ -82,9 +82,13 @@ export default function RadioWidget({
     async function fetchNowPlaying() {
       try {
         const response = await fetch(
-          "https://api.allorigins.win/raw?url=" + encodeURIComponent(STATUS_URL),
+          `https://api.allorigins.win/get?url=${encodeURIComponent(STATUS_URL)}`,
         );
-        const data = (await response.json()) as IcecastResponse;
+
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const proxyData = await response.json();
+        const data = JSON.parse(proxyData.contents) as IcecastResponse;
 
         const sources = Array.isArray(data?.icestats?.source)
           ? data.icestats.source
