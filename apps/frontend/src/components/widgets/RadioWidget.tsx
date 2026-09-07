@@ -1,7 +1,7 @@
 "use client";
 
-import { Music, Radio } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Music, Pause, Play, Radio } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 type NowPlayingResponse = {
   isPlaying: boolean;
@@ -16,7 +16,7 @@ type RadioWidgetProps = {
   isEditing?: boolean;
 };
 
-const DEFAULT_LISTEN_URL = "https://yantarne.fm/";
+const STREAM_URL = "https://yantarne.fm/yantarne";
 const POLL_INTERVAL_MS = 10_000;
 
 function EqualizerBars() {
@@ -34,6 +34,8 @@ export default function RadioWidget({
   className = "",
   isEditing = false,
 }: RadioWidgetProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [nowPlaying, setNowPlaying] = useState<NowPlayingResponse>({
     isPlaying: false,
   });
@@ -67,61 +69,96 @@ export default function RadioWidget({
     };
   }, []);
 
-  const listenUrl = nowPlaying.listenUrl || DEFAULT_LISTEN_URL;
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsAudioPlaying(true);
+    const handlePause = () => setIsAudioPlaying(false);
+
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", handlePause);
+
+    return () => {
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", handlePause);
+      audio.pause();
+    };
+  }, []);
+
+  function togglePlay(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+
+    if (isEditing || !audioRef.current) return;
+
+    if (isAudioPlaying) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+      return;
+    }
+
+    void audioRef.current.play().catch(() => {
+      setIsAudioPlaying(false);
+    });
+  }
+
   const title = nowPlaying.title || "Yantarne FM";
   const artist = nowPlaying.artist || nowPlaying.radioName || "Онлайн-радіо";
   const isLive = nowPlaying.isPlaying;
 
-  const content = (
-    <>
+  return (
+    <div
+      className={`bento-card col-span-2 row-span-1 relative overflow-hidden rounded-[24px] border border-red-900/30 bg-gradient-to-br from-red-900/20 to-black p-6 transition hover:border-red-700/40 ${className}`}
+    >
+      <audio ref={audioRef} src={STREAM_URL} preload="none" />
+
       <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-red-500/10 blur-[40px]" />
 
-      <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-900 shadow-lg shadow-red-900/30">
-        <Music className="h-7 w-7 text-white/90" />
-      </div>
+      <div className="relative z-10 flex w-full items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-5">
+          <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-900 shadow-lg shadow-red-900/30">
+            <Music className="h-7 w-7 text-white/90" />
+          </div>
 
-      <div className="z-10 min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2">
-          {isLive ? (
-            <>
-              <EqualizerBars />
-              <p className="text-xs font-medium uppercase tracking-wide text-red-500">
-                В ЕФІРІ
-              </p>
-            </>
-          ) : (
-            <>
-              <Radio className="h-3.5 w-3.5 text-red-500" />
-              <p className="text-xs font-medium uppercase tracking-wide text-red-500">
-                ОФЛАЙН
-              </p>
-            </>
-          )}
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              {isLive ? (
+                <>
+                  <EqualizerBars />
+                  <p className="text-xs font-medium uppercase tracking-wide text-red-500">
+                    В ЕФІРІ
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Radio className="h-3.5 w-3.5 text-red-500" />
+                  <p className="text-xs font-medium uppercase tracking-wide text-red-500">
+                    ОФЛАЙН
+                  </p>
+                </>
+              )}
+            </div>
+            <h3 className="truncate text-base font-semibold text-text-primary">
+              {title}
+            </h3>
+            <p className="truncate text-sm text-text-secondary">{artist}</p>
+          </div>
         </div>
-        <h3 className="truncate text-base font-semibold text-text-primary">
-          {title}
-        </h3>
-        <p className="truncate text-sm text-text-secondary">{artist}</p>
+
+        <button
+          type="button"
+          onClick={togglePlay}
+          disabled={isEditing}
+          aria-label={isAudioPlaying ? "Pause radio" : "Play radio"}
+          className="flex-shrink-0 rounded-full p-2 text-red-500 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isAudioPlaying ? (
+            <Pause className="h-6 w-6 fill-current" />
+          ) : (
+            <Play className="h-6 w-6 fill-current" />
+          )}
+        </button>
       </div>
-
-      <Radio className="absolute right-5 top-5 h-5 w-5 text-red-500 opacity-80" />
-    </>
-  );
-
-  const sharedClassName = `bento-card col-span-2 row-span-1 relative flex items-center gap-5 overflow-hidden rounded-[24px] border border-red-900/30 bg-gradient-to-br from-red-900/20 to-black p-6 transition hover:border-red-700/40 ${className}`;
-
-  if (isEditing) {
-    return <div className={sharedClassName}>{content}</div>;
-  }
-
-  return (
-    <a
-      href={listenUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`${sharedClassName} cursor-pointer hover:from-red-900/30`}
-    >
-      {content}
-    </a>
+    </div>
   );
 }
