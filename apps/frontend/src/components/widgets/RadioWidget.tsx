@@ -16,7 +16,7 @@ type RadioWidgetProps = {
   isEditing?: boolean;
 };
 
-const STREAM_URL = "https://yantarne.fm/yantarne";
+const STREAM_URL = "https://yantarne.fm/yantarne?type=.mp3";
 const POLL_INTERVAL_MS = 10_000;
 
 function EqualizerBars() {
@@ -91,15 +91,20 @@ export default function RadioWidget({
 
     if (isEditing || !audioRef.current) return;
 
-    if (isAudioPlaying) {
+    if (!isAudioPlaying) {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsAudioPlaying(true))
+          .catch((err) => {
+            console.error("Audio playback failed:", err);
+            setIsAudioPlaying(false);
+          });
+      }
+    } else {
       audioRef.current.pause();
       setIsAudioPlaying(false);
-      return;
     }
-
-    void audioRef.current.play().catch(() => {
-      setIsAudioPlaying(false);
-    });
   }
 
   const title = nowPlaying.title || "Yantarne FM";

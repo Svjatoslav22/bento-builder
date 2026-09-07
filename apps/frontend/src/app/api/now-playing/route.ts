@@ -40,22 +40,22 @@ function parseArtistAndTitle(rawTitle: string) {
   return { artist: "", title: trimmed };
 }
 
-function getSourceTitle(data: IcecastResponse) {
-  const source = data?.icestats?.source;
+function getRawTitle(data: IcecastResponse) {
+  const source = Array.isArray(data?.icestats?.source)
+    ? data.icestats.source[0]
+    : data?.icestats?.source;
 
-  if (Array.isArray(source)) {
-    const mountSource =
-      source.find((item) => item.title) ?? source[0];
-    return mountSource?.title ?? "";
-  }
-
-  return source?.title ?? "";
+  return source?.title;
 }
 
 export async function GET() {
   try {
     const response = await fetch(YANTARNE_STATUS_URL, {
-      headers: { "Cache-Control": "no-cache" },
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        Accept: "application/json, text/plain, */*",
+        "Cache-Control": "no-cache",
+      },
     });
 
     if (!response.ok) {
@@ -63,10 +63,10 @@ export async function GET() {
     }
 
     const data = (await response.json()) as IcecastResponse;
-    const rawTitle = getSourceTitle(data);
+    const rawTitle = getRawTitle(data);
 
     if (!rawTitle) {
-      return Response.json({ isPlaying: false });
+      throw new Error("No track title found in Icecast response");
     }
 
     const { artist, title } = parseArtistAndTitle(rawTitle);
@@ -79,7 +79,7 @@ export async function GET() {
       listenUrl: LISTEN_URL,
     });
   } catch (error) {
-    console.error("Now playing API error:", error);
+    console.error("Radio API Error:", error);
     return Response.json({ isPlaying: false });
   }
 }
