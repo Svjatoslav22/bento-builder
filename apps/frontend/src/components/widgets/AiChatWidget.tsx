@@ -5,12 +5,13 @@ import { useChat } from "ai/react";
 type AiChatWidgetProps = {
   className?: string;
   isEditing?: boolean;
+  widget?: { id?: string };
 };
 
-export default function AiChatWidget({ className = "", isEditing = false }: AiChatWidgetProps) {
+export default function AiChatWidget({ className = "", isEditing = false, widget }: AiChatWidgetProps) {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
-    body: { widgetId: "placeholder" },
+    body: { widgetId: widget?.id || "" },
     disabled: isEditing,
   });
 
