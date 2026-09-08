@@ -3,21 +3,12 @@
 import { Music, Pause, Play, Radio } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-type IcecastSource = {
-  title?: string;
-  listenurl?: string;
-};
-
-type IcecastResponse = {
-  icestats?: {
-    source?: IcecastSource | IcecastSource[];
-  };
-};
-
 type NowPlayingState = {
   isPlaying: boolean;
   title?: string;
   artist?: string;
+  radioName?: string;
+  listenUrl?: string;
 };
 
 type RadioWidgetProps = {
@@ -26,34 +17,7 @@ type RadioWidgetProps = {
 };
 
 const STREAM_URL = "https://complex.in.ua/yantarne";
-const STATUS_URL = "https://complex.in.ua/status-json.xsl";
 const POLL_INTERVAL_MS = 10_000;
-
-function parseArtistAndTitle(rawTitle: string) {
-  const trimmed = rawTitle.trim();
-
-  if (!trimmed) {
-    return { artist: "", title: "" };
-  }
-
-  const dashIndex = trimmed.indexOf(" - ");
-  if (dashIndex !== -1) {
-    return {
-      artist: trimmed.slice(0, dashIndex).trim(),
-      title: trimmed.slice(dashIndex + 3).trim(),
-    };
-  }
-
-  const simpleDashIndex = trimmed.indexOf("-");
-  if (simpleDashIndex !== -1) {
-    return {
-      artist: trimmed.slice(0, simpleDashIndex).trim(),
-      title: trimmed.slice(simpleDashIndex + 1).trim(),
-    };
-  }
-
-  return { artist: "", title: trimmed };
-}
 
 function EqualizerBars() {
   return (
@@ -81,31 +45,24 @@ export default function RadioWidget({
 
     async function fetchNowPlaying() {
       try {
-        const response = await fetch(
-          `https://api.allorigins.win/get?url=${encodeURIComponent(STATUS_URL)}`,
-        );
+        const response = await fetch("/api/now-playing", {
+          cache: "no-store",
+        });
 
         if (!response.ok) throw new Error("Network response was not ok");
 
-        const proxyData = await response.json();
-        const data = JSON.parse(proxyData.contents) as IcecastResponse;
-
-        const sources = Array.isArray(data?.icestats?.source)
-          ? data.icestats.source
-          : [data?.icestats?.source];
-        const mount = sources.find(
-          (s) => s && s.listenurl && s.listenurl.includes("yantarne"),
-        );
-        const rawTitle = mount?.title;
-
-        if (!rawTitle) {
-          throw new Error("No track title found in Icecast response");
-        }
-
-        const { artist, title } = parseArtistAndTitle(rawTitle);
+        const data = (await response.json()) as NowPlayingState;
 
         if (isMounted) {
-          setNowPlaying({ isPlaying: true, title, artist });
+          setNowPlaying(
+            data.isPlaying
+              ? data
+              : {
+                  isPlaying: false,
+                  title: "Невідомий трек",
+                  artist: "",
+                },
+          );
         }
       } catch (error) {
         console.error("Radio metadata fetch failed:", error);
