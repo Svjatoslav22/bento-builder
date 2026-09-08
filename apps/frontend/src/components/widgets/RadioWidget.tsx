@@ -102,18 +102,21 @@ export default function RadioWidget({
     };
   }, []);
 
-  function togglePlay(event: React.MouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-
+  async function togglePlay(e: React.MouseEvent) {
+    e.stopPropagation();
     if (isEditing || !audioRef.current) return;
 
-    if (!isAudioPlaying) {
-      audioRef.current
-        ?.play()
-        .then(() => setIsAudioPlaying(true))
-        .catch(console.error);
-    } else {
-      audioRef.current?.pause();
+    try {
+      if (isAudioPlaying) {
+        audioRef.current.pause();
+        setIsAudioPlaying(false);
+      } else {
+        await audioRef.current.play();
+        setIsAudioPlaying(true);
+      }
+    } catch (error) {
+      // Ігноруємо AbortError, яка виникає при швидких кліках
+      console.warn("Playback interrupted:", error);
       setIsAudioPlaying(false);
     }
   }
