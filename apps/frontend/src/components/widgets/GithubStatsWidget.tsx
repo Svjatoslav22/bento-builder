@@ -124,7 +124,7 @@ export default function GithubStatsWidget({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={chartUrl}
-            src={chartUrl}
+            src={chartUrl || ""}
             alt={`${handle} GitHub contribution activity`}
             className="w-full h-auto object-contain"
             onError={() => setChartFailed(true)}

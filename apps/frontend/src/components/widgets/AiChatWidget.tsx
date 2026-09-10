@@ -6,10 +6,35 @@ import ReactMarkdown from "react-markdown";
 type AiChatWidgetProps = {
   className?: string;
   isEditing?: boolean;
-  widget?: { id?: string };
+  widget?: { id?: string; config?: unknown };
+  profileName?: string | null;
 };
 
-export default function AiChatWidget({ className = "", isEditing = false, widget }: AiChatWidgetProps) {
+const DEFAULT_NAME = "user";
+
+function resolveDisplayName(profileName?: string | null, widget?: { config?: unknown }): string {
+  if (profileName?.trim()) {
+    return profileName.trim();
+  }
+
+  const config = widget?.config;
+  if (config && typeof config === "object" && "name" in config) {
+    const name = (config as Record<string, unknown>).name;
+    if (typeof name === "string" && name.trim()) {
+      return name.trim();
+    }
+  }
+
+  return DEFAULT_NAME;
+}
+
+export default function AiChatWidget({
+  className = "",
+  isEditing = false,
+  widget,
+  profileName,
+}: AiChatWidgetProps) {
+  const displayName = resolveDisplayName(profileName, widget);
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
     body: { widgetId: widget?.id || "" },
@@ -26,7 +51,7 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
               AI
             </div>
             <p className="text-sm text-text-secondary font-mono">
-             Привіт! Я AI-асистент . Запитуй мене про його стек (React, Next.js, Node.js) або останні проєкти, такі як Slick, Manifik чи SiteMonitor.
+              Привіт! Я AI-асистент {displayName}. Запитуй мене про його стек (React, Next.js, Node.js) або останні проєкти, такі як Slick, Manifik чи SiteMonitor.
             </p>
           </div>
         )}

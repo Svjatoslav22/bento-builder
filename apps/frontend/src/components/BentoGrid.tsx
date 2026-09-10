@@ -67,7 +67,7 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
       {id === "portfolio" && <PortfolioWidget isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "location" && <LocationWidget city={city} timezone={timezone} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "ai-chat" && <AiChatWidget widget={widgetData.find((w) => w.type === "ai-chat")} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "ai-chat" && <AiChatWidget widget={widgetData.find((w) => w.type === "ai-chat")} profileName={profile?.name} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
     </SortableWidget>)}
   </div>;
   return editorMode ? <DndContext id="bento-editor" sensors={sensors} onDragStart={({ active }) => onDragStart?.(String(active.id))} onDragEnd={onDragEnd}><SortableContext items={orderedWidgets} strategy={rectSortingStrategy}>{grid}</SortableContext></DndContext> : grid;
