@@ -85,7 +85,7 @@ model Profile {
 model Widget {
   id          String   @id @default(cuid())
   profileId   String
-  type        String   // "profile", "spotify", "ai-chat", "links", "github", etc.
+  type        String   // "profile", "spotify", "tech-stack", "github-stats", "ai-chat", "portfolio", etc.
   sizePreset  String   @default("M") // Наші фіксовані розміри: "S", "M", "L", "Wide"
   position    Int      // Порядок сортування в сітці
   config      Json     // JSON-поле для зберігання гнучких даних (URL, текст, налаштування)

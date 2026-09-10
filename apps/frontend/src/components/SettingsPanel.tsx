@@ -31,7 +31,13 @@ export default function SettingsPanel({ selectedWidget, activeWidgetType: active
   const panelRef = useRef<HTMLElement>(null);
   const activeWidgetType = activeWidgetTypeProp || selectedWidget;
   const safeWidgetType = typeof activeWidgetType === "string" ? activeWidgetType : "profile";
-  const activeWidgetLabel = safeWidgetType === "ai-chat" ? "AI Chat" : safeWidgetType === "spotify" ? "Yantarne FM" : safeWidgetType.charAt(0).toUpperCase() + safeWidgetType.slice(1);
+  const widgetLabels: Record<string, string> = {
+    "ai-chat": "AI Chat",
+    spotify: "Yantarne FM",
+    "tech-stack": "Tech Stack",
+    "github-stats": "GitHub Activity",
+  };
+  const activeWidgetLabel = widgetLabels[safeWidgetType] || safeWidgetType.charAt(0).toUpperCase() + safeWidgetType.slice(1);
   const widgetContent = activeWidget?.config && typeof activeWidget.config === "object" ? activeWidget.config as Record<string, unknown> : {};
   const updateContent = (field: string, value: string) => updateWidget(activeWidget?.id || selectedWidget, { config: { ...widgetContent, [field]: value } });
   useEffect(() => {
@@ -47,6 +53,8 @@ export default function SettingsPanel({ selectedWidget, activeWidgetType: active
         {safeWidgetType === "resume" && <div className="space-y-2"><label className="text-xs font-medium text-text-secondary">Resume PDF</label><input disabled={isUploading} type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={(event) => { const file = event.target.files?.[0]; if (file) onResumeUpload(file); }} /><label htmlFor="resume-upload" className={`${inputClass} block cursor-pointer text-center ${isUploading ? "cursor-wait opacity-60" : ""}`}>{isUploading ? "Uploading..." : "Choose PDF file"}</label>{typeof widgetContent.filename === "string" && <p className="truncate text-xs text-text-secondary">{widgetContent.filename}</p>}</div>}
         {safeWidgetType === "ai-chat" && <label className="block text-xs font-medium text-text-secondary">Контекст для AI (Розкажи про себе для HR)<textarea value={String(widgetContent.context || "")} onChange={(event) => updateContent("context", event.target.value)} rows={6} className={`${inputClass} mt-1.5 resize-none`} placeholder="Розкажи про свій досвід, навички та проєкти..." /></label>}
         {safeWidgetType === "spotify" && <p className="text-xs leading-relaxed text-text-secondary">Yantarne FM транслює автоматично. Віджет показує поточний трек з ефіру та веде на yantarne.fm.</p>}
+        {safeWidgetType === "tech-stack" && <p className="text-xs leading-relaxed text-text-secondary">Показує ключові технології: React, Next.js, Node.js, TypeScript, Tailwind і PostgreSQL.</p>}
+        {safeWidgetType === "github-stats" && <p className="text-xs leading-relaxed text-text-secondary">Підтягує статистику з GitHub за посиланням у профілі. Оновіть GitHub URL у Profile Info.</p>}
         <hr className="border-border" />
         <div className="space-y-2"><label className="flex items-center justify-between text-xs font-medium text-text-secondary">Size<span className="rounded bg-surface-elevated px-1.5 py-0.5">{sizeLabel}</span></label><div className="flex gap-1 rounded-xl border border-border bg-[#1A1A1D] p-1">{["S", "M", "L", "Wide"].map((size) => <button key={size} type="button" onClick={() => onSizeChange(size)} className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${selectedSize === size ? "bg-white text-black" : "text-text-secondary hover:text-white"}`}>{size}</button>)}</div></div>
         <hr className="border-border" />

@@ -9,6 +9,8 @@ import PortfolioWidget from "@/components/widgets/PortfolioWidget";
 import LocationWidget from "@/components/widgets/LocationWidget";
 import ResumeWidget from "@/components/widgets/ResumeWidget";
 import AiChatWidget from "@/components/widgets/AiChatWidget";
+import TechStackWidget from "@/components/widgets/TechStackWidget";
+import GithubStatsWidget from "@/components/widgets/GithubStatsWidget";
 import { EditorOverlay } from "@/components/editor/EditorOverlay";
 
 export type ProfileData = {
@@ -50,7 +52,7 @@ type BentoGridProps = {
   widgetData?: WidgetView[];
 };
 
-const allWidgets = ["profile", "spotify", "portfolio", "location", "resume", "ai-chat"];
+const allWidgets = ["profile", "spotify", "tech-stack", "github-stats", "portfolio", "location", "resume", "ai-chat"];
 const sizeClasses: Record<string, string> = { S: "col-span-1 row-span-1", M: "col-span-2 row-span-1", L: "col-span-2 row-span-2", Wide: "col-span-3 row-span-1" };
 
 export default function BentoGrid({ className = "", editorMode = false, profile, widgetSizes = {}, removedWidgets = [], selectedWidget, onSelectWidget, widgets = allWidgets, onDragEnd, onDragStart, onDeleteWidget, onResizeWidget, city, timezone, isEditing = editorMode, widgetData = [] }: BentoGridProps) {
@@ -60,6 +62,8 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
     {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDelete={() => onDeleteWidget?.(id)} onResize={() => onResizeWidget?.(id)}>
       {id === "profile" && <ProfileWidget profile={profile} isEditing={isEditing} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "spotify" && <RadioWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "tech-stack" && <TechStackWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "github-stats" && <GithubStatsWidget isEditing={isEditing} githubUrl={profile?.githubUrl} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "portfolio" && <PortfolioWidget isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "location" && <LocationWidget city={city} timezone={timezone} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
