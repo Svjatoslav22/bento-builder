@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 type GithubStatsWidgetProps = {
   className?: string;
   isEditing?: boolean;
@@ -7,7 +9,11 @@ type GithubStatsWidgetProps = {
   username?: string | null;
 };
 
-function extractGithubUsername(githubUrl?: string | null, username?: string | null) {
+function extractGithubUsername(githubUrl?: string | null, username?: string | null): string | null {
+  if (username?.trim()) {
+    return username.trim().replace(/^@/, "");
+  }
+
   if (githubUrl) {
     try {
       const pathname = new URL(githubUrl).pathname.replace(/^\/+|\/+$/g, "");
@@ -19,7 +25,44 @@ function extractGithubUsername(githubUrl?: string | null, username?: string | nu
     }
   }
 
-  return username || "octocat";
+  return null;
+}
+
+function GithubFallback({
+  handle,
+  profileUrl,
+  message,
+}: {
+  handle: string | null;
+  profileUrl: string;
+  message: string;
+}) {
+  const avatarUrl = handle ? `https://github.com/${encodeURIComponent(handle)}.png?size=120` : null;
+
+  return (
+    <div className="flex h-full min-h-[110px] flex-col items-center justify-center gap-3 p-4 text-center">
+      {avatarUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={avatarUrl}
+          alt={`${handle} avatar`}
+          className="h-14 w-14 rounded-full border border-border object-cover"
+        />
+      )}
+      <div>
+        {handle && <p className="text-sm font-medium text-text-primary">@{handle}</p>}
+        <p className={`text-xs text-text-secondary ${handle ? "mt-1" : ""}`}>{message}</p>
+        <a
+          href={profileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block text-xs font-medium text-cyan-400 hover:text-cyan-300"
+        >
+          Open GitHub profile →
+        </a>
+      </div>
+    </div>
+  );
 }
 
 export default function GithubStatsWidget({
@@ -29,8 +72,14 @@ export default function GithubStatsWidget({
   username,
 }: GithubStatsWidgetProps) {
   const handle = extractGithubUsername(githubUrl, username);
-  const statsUrl = `https://github-readme-stats.vercel.app/api?username=${encodeURIComponent(handle)}&show_icons=true&theme=dark&hide_border=true&bg_color=121214&title_color=22d3ee&icon_color=fb923c&text_color=a1a1aa`;
-  const profileUrl = `https://github.com/${handle}`;
+  const chartUrl = handle ? `https://ghchart.rshah.org/${encodeURIComponent(handle)}` : null;
+  const avatarUrl = handle ? `https://github.com/${encodeURIComponent(handle)}.png?size=120` : null;
+  const profileUrl = handle ? `https://github.com/${handle}` : githubUrl || "https://github.com";
+  const [chartFailed, setChartFailed] = useState(false);
+
+  useEffect(() => {
+    setChartFailed(false);
+  }, [handle]);
 
   const content = (
     <>
@@ -41,24 +90,46 @@ export default function GithubStatsWidget({
             Activity
           </p>
           <h3 className="truncate text-base font-semibold text-text-primary">
-            GitHub Stats
+            GitHub Activity
           </h3>
-          <p className="truncate text-xs text-text-secondary">@{handle}</p>
+          {handle && <p className="truncate text-xs text-text-secondary">@{handle}</p>}
         </div>
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-white/5">
-          <svg className="h-4 w-4 text-text-primary" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.701-1.333-1.701-1.09-.745.083-.729.083-.729 1.205.084 1.84 1.236 1.84 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-          </svg>
-        </div>
+        {avatarUrl && (
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white/5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={avatarUrl}
+              alt={`${handle} avatar`}
+              className="h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border/60 bg-[#0d1117]/60">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={statsUrl}
-          alt={`${handle} GitHub stats`}
-          className="h-full w-full object-contain object-left"
-        />
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border/60 bg-[#0d1117] p-2">
+        {!handle || chartFailed ? (
+          <GithubFallback
+            handle={handle}
+            profileUrl={profileUrl}
+            message={
+              !handle
+                ? "Add a GitHub username in widget settings or profile URL."
+                : "Contribution chart unavailable — open GitHub profile."
+            }
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={chartUrl}
+            src={chartUrl}
+            alt={`${handle} GitHub contribution activity`}
+            className="w-full h-auto object-contain"
+            onError={() => setChartFailed(true)}
+          />
+        )}
       </div>
     </>
   );

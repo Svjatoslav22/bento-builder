@@ -62,8 +62,8 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
     {orderedWidgets.map((id) => <SortableWidget key={id} id={id} editorMode={editorMode} selected={selectedWidget === id} sizeClass={sizeClasses[widgetSizes[id] || ""] || (id === "profile" ? "col-span-2 row-span-2" : id === "location" || id === "resume" ? "col-span-1 row-span-1" : "col-span-2 row-span-1")} onSelect={() => editorMode && onSelectWidget?.(id)} onDelete={() => onDeleteWidget?.(id)} onResize={() => onResizeWidget?.(id)}>
       {id === "profile" && <ProfileWidget profile={profile} isEditing={isEditing} className="h-full rounded-4xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "spotify" && <RadioWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "tech-stack" && <TechStackWidget isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
-      {id === "github-stats" && <GithubStatsWidget isEditing={isEditing} githubUrl={profile?.githubUrl} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "tech-stack" && <TechStackWidget isEditing={isEditing} technologies={getTechStack(widgetData, id)} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
+      {id === "github-stats" && <GithubStatsWidget isEditing={isEditing} githubUrl={profile?.githubUrl} username={getGithubUsername(widgetData, id)} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "portfolio" && <PortfolioWidget isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl block !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "location" && <LocationWidget city={city} timezone={timezone} isEditing={isEditing} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
       {id === "resume" && <ResumeWidget resumeUrl={profile?.resumeUrl} isEditing={isEditing} widget={{ content: getContent(widgetData, id) }} className="h-full rounded-3xl !transform-none hover:!transform-none hover:!shadow-none" />}
@@ -76,6 +76,21 @@ export default function BentoGrid({ className = "", editorMode = false, profile,
 function getContent(widgetData: WidgetView[], type: string) {
   const config = widgetData.find((widget) => widget.type === type)?.config;
   return config && typeof config === "object" ? config as { url?: string; resumeUrl?: string } : {};
+}
+
+function getWidgetConfig(widgetData: WidgetView[], type: string) {
+  const config = widgetData.find((widget) => widget.type === type)?.config;
+  return config && typeof config === "object" ? (config as Record<string, unknown>) : {};
+}
+
+function getTechStack(widgetData: WidgetView[], type: string) {
+  const config = getWidgetConfig(widgetData, type);
+  return (config.technologies as string[] | string | undefined) || null;
+}
+
+function getGithubUsername(widgetData: WidgetView[], type: string) {
+  const config = getWidgetConfig(widgetData, type);
+  return typeof config.username === "string" ? config.username : null;
 }
 
 function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDelete, onResize, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDelete: () => void; onResize: () => void; children: React.ReactNode }) {
