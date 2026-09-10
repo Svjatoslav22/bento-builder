@@ -26,7 +26,7 @@ export default function AiChatWidget({ className = "", isEditing = false, widget
               AI
             </div>
             <p className="text-sm text-text-secondary font-mono">
-              Привіт! Я AI-асистент Святослава. Запитуй мене про його стек (React, Next.js, Node.js) або останні проєкти, такі як Slick, Manifik чи SiteMonitor.
+             Привіт! Я AI-асистент . Запитуй мене про його стек (React, Next.js, Node.js) або останні проєкти, такі як Slick, Manifik чи SiteMonitor.
             </p>
           </div>
         )}
