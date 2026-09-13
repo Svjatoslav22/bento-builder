@@ -16,35 +16,21 @@ type GithubStatsWidgetProps = {
   widget?: GithubWidget | null;
 };
 
-function readConfig(widget?: GithubWidget | null): Record<string, unknown> {
-  const config = widget?.config;
-  return config && typeof config === "object" && !Array.isArray(config)
-    ? (config as Record<string, unknown>)
-    : {};
-}
-
-function extractGithubUsername(
-  configUsername?: string | null,
-  githubUrl?: string | null,
-  username?: string | null,
-): string | null {
-  const fromConfig = configUsername?.trim() || username?.trim();
-  if (fromConfig) {
-    return fromConfig.replace(/^@/, "");
-  }
-
-  if (githubUrl) {
+function parseWidgetConfig(config: unknown): Record<string, unknown> {
+  if (typeof config === "string") {
     try {
-      const pathname = new URL(githubUrl).pathname.replace(/^\/+|\/+$/g, "");
-      const handle = pathname.split("/")[0];
-      if (handle) return handle;
+      const parsed = JSON.parse(config);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
     } catch {
-      const match = githubUrl.match(/github\.com\/([^/?#]+)/i);
-      if (match?.[1]) return match[1];
+      return {};
     }
   }
 
-  return null;
+  if (config && typeof config === "object" && !Array.isArray(config)) {
+    return config as Record<string, unknown>;
+  }
+
+  return {};
 }
 
 function GitHubMark() {
@@ -56,15 +42,15 @@ function GitHubMark() {
 }
 
 function GithubFallback({
-  handle,
+  username,
   profileUrl,
   isEditing,
 }: {
-  handle: string | null;
+  username: string;
   profileUrl: string;
   isEditing: boolean;
 }) {
-  const initial = (handle || "G").slice(0, 1).toUpperCase();
+  const initial = (username || "G").slice(0, 1).toUpperCase();
 
   return (
     <div className="flex h-full min-h-[110px] flex-col justify-between gap-4">
@@ -73,7 +59,7 @@ function GithubFallback({
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
           <h3 className="text-base font-semibold text-text-primary">GitHub Activity</h3>
           <p className="mt-1 truncate text-sm text-text-secondary">
-            {handle ? `@${handle}` : "Add a GitHub username in widget settings"}
+            {username ? `@${username}` : "Add a GitHub username in widget settings"}
           </p>
         </div>
         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-[#16161A] text-sm font-semibold text-zinc-200">
@@ -83,7 +69,7 @@ function GithubFallback({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-zinc-400">
           <GitHubMark />
-          <span className="text-xs font-medium">github.com{handle ? `/${handle}` : ""}</span>
+          <span className="text-xs font-medium">github.com{username ? `/${username}` : ""}</span>
         </div>
         {isEditing ? (
           <span className="inline-flex items-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-secondary">
@@ -108,67 +94,85 @@ export default function GithubStatsWidget({
   className = "",
   isEditing = false,
   githubUrl,
-  username,
+  username: usernameProp,
   widget,
 }: GithubStatsWidgetProps) {
-  const config = readConfig(widget);
-  const configUsername = typeof config.username === "string" ? config.username.trim() : "";
-  const hasUsername = Boolean(configUsername || username?.trim());
-  const handle = extractGithubUsername(configUsername, githubUrl, username);
-  const profileUrl = handle ? `https://github.com/${handle}` : githubUrl || "https://github.com";
-  const chartUrl = hasUsername && handle ? `https://ghchart.rshah.org/${handle}` : null;
-  const [hasError, setHasError] = useState(!hasUsername);
+  const parsedConfig = parseWidgetConfig(widget?.config);
+  const username = String(parsedConfig.username ?? usernameProp ?? "")
+    .trim()
+    .replace(/^@/, "");
+  const profileUrl = username ? `https://github.com/${username}` : githubUrl || "https://github.com";
+  const chartUrl = username ? `https://ghchart.rshah.org/${username}` : null;
+  const [isMounted, setIsMounted] = useState(false);
+  const [hasError, setHasError] = useState(!username);
   const [chartLoaded, setChartLoaded] = useState(false);
 
   useEffect(() => {
-    setHasError(!hasUsername);
-    setChartLoaded(false);
-  }, [hasUsername, handle]);
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!hasUsername || !chartUrl || hasError || chartLoaded) return;
+    setHasError(!username);
+    setChartLoaded(false);
+  }, [username]);
+
+  useEffect(() => {
+    if (!isMounted || !username || !chartUrl || hasError || chartLoaded) return;
     const timeout = window.setTimeout(() => setHasError(true), 4000);
     return () => window.clearTimeout(timeout);
-  }, [hasUsername, chartUrl, hasError, chartLoaded]);
+  }, [isMounted, username, chartUrl, hasError, chartLoaded]);
 
-  const showFallback = !hasUsername || hasError || !chartUrl;
+  const shellClass = `bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`;
+
+  if (!isMounted) {
+    return (
+      <div className={shellClass}>
+        <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
+        <div className="mb-3 h-10 w-40 animate-pulse rounded-md bg-zinc-800/80" />
+        <div className="min-h-[92px] flex-1 animate-pulse rounded-md bg-zinc-800/80" />
+      </div>
+    );
+  }
+
+  if (!username || hasError || !chartUrl) {
+    return (
+      <div className={shellClass}>
+        <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
+        <GithubFallback username={username} profileUrl={profileUrl} isEditing={isEditing} />
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`}
-    >
+    <div className={shellClass}>
       <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
-      {showFallback ? (
-        <GithubFallback handle={handle} profileUrl={profileUrl} isEditing={isEditing} />
-      ) : (
-        <div className="relative flex h-full min-h-0 flex-col">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
-              <h3 className="truncate text-base font-semibold text-text-primary">GitHub Activity</h3>
-              {handle && <p className="truncate text-xs text-text-secondary">@{handle}</p>}
-            </div>
-          </div>
-          <div className="relative min-h-[92px] flex-1 overflow-hidden rounded-md">
-            {!chartLoaded && (
-              <div className="absolute inset-0 animate-pulse rounded-md bg-zinc-800/80" />
-            )}
-            <img
-              src={chartUrl}
-              alt="GitHub contributions chart"
-              onError={() => setHasError(true)}
-              onLoad={(event) => {
-                if (event.currentTarget.naturalWidth === 0) {
-                  setHasError(true);
-                  return;
-                }
-                setChartLoaded(true);
-              }}
-              className={`w-full rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
-            />
+      <div className="relative flex h-full min-h-0 flex-col">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
+            <h3 className="truncate text-base font-semibold text-text-primary">GitHub Activity</h3>
+            <p className="truncate text-xs text-text-secondary">@{username}</p>
           </div>
         </div>
-      )}
+        <div className="relative min-h-[92px] flex-1 overflow-hidden rounded-md">
+          {!chartLoaded && (
+            <div className="absolute inset-0 animate-pulse rounded-md bg-zinc-800/80" />
+          )}
+          <img
+            src={chartUrl}
+            alt="GitHub contributions chart"
+            onError={() => setHasError(true)}
+            onLoad={(event) => {
+              if (event.currentTarget.naturalWidth === 0) {
+                setHasError(true);
+                return;
+              }
+              setChartLoaded(true);
+            }}
+            className={`w-full rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
+          />
+        </div>
+      </div>
     </div>
   );
 }
