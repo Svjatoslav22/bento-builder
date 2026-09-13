@@ -51,7 +51,7 @@ export default function AiChatWidget({
               AI
             </div>
             <p className="text-sm text-text-secondary font-mono">
-              Привіт! Я AI-асистент {displayName}. Запитуй мене про його стек (React, Next.js, Node.js) або останні проєкти, такі як Slick, Manifik чи SiteMonitor.
+              Привіт! Я AI-асистент {displayName}. Запитуй мене про його стек або останні проєкти.
             </p>
           </div>
         )}

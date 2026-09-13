@@ -85,7 +85,8 @@ function getWidgetConfig(widgetData: WidgetView[], type: string) {
 
 function getTechStack(widgetData: WidgetView[], type: string) {
   const config = getWidgetConfig(widgetData, type);
-  return (config.technologies as string[] | string | undefined) || null;
+  if (!("technologies" in config)) return null;
+  return config.technologies as string[] | string | undefined;
 }
 
 function getGithubUsername(widgetData: WidgetView[], type: string) {

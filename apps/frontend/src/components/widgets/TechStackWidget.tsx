@@ -21,7 +21,8 @@ export function parseTechnologies(value?: string[] | string | null): string[] {
     return value.map((item) => String(item).trim()).filter(Boolean);
   }
 
-  if (typeof value === "string" && value.trim()) {
+  if (typeof value === "string") {
+    if (!value.trim()) return [];
     return value
       .split(/[,|\n]+/)
       .map((item) => item.trim())

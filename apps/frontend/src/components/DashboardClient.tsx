@@ -112,7 +112,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   function addWidget(name: string) {
     if (widgets.length >= MAX_WIDGETS) return;
     const id = name === "Profile Info" ? "profile" : name === "Yantarne FM" ? "spotify" : name.toLowerCase().replace(" ", "-");
-    if (!widgets.some((widget) => widget.type === id)) setWidgets((current) => [...current, { type: id, sizePreset: id === "profile" ? "L" : "M", config: {} } as DashboardWidget]);
+    if (!widgets.some((widget) => widget.type === id)) setWidgets((current) => [...current, { type: id, sizePreset: id === "profile" ? "L" : "M", config: id === "tech-stack" ? { technologies: "" } : {} } as DashboardWidget]);
   }
 
   function dragEnd(event: DragEndEvent) {
@@ -145,8 +145,10 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     <div className="antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-background">
       <Sidebar widgetCount={widgets.length} onAddWidget={addWidget} />
       <main className="flex-1 h-full canvas-bg flex flex-col relative">
-        <div className="absolute left-8 right-8 top-5 z-10 flex items-center justify-between gap-4 border border-border bg-surface/90 px-4 py-2.5 backdrop-blur-md"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><CopyLinkButton value={publicLink} /></div>
-        <div className="flex-1 overflow-y-auto w-full p-8 pb-32 pt-24 flex justify-center"><BentoGrid editorMode isEditing profile={{ ...profileState, avatarUrl }} widgets={widgets.map((widget) => widget.type)} widgetData={widgets} widgetSizes={sizes} selectedWidget={selectedWidget} onSelectWidget={setSelectedWidget} onDragEnd={dragEnd} onDragStart={setSelectedWidget} onDeleteWidget={removeWidget} onResizeWidget={cycleWidgetSize} city={city} timezone={timezone} /></div>
+        <div className="flex-1 overflow-y-auto w-full flex flex-col">
+          <div className="sticky top-0 z-[100] flex items-center justify-between gap-4 border-b border-border bg-[#09090B]/90 px-8 py-2.5 backdrop-blur-xl"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><CopyLinkButton value={publicLink} /></div>
+          <div className="flex justify-center p-8 pb-32"><BentoGrid editorMode isEditing profile={{ ...profileState, avatarUrl }} widgets={widgets.map((widget) => widget.type)} widgetData={widgets} widgetSizes={sizes} selectedWidget={selectedWidget} onSelectWidget={setSelectedWidget} onDragEnd={dragEnd} onDragStart={setSelectedWidget} onDeleteWidget={removeWidget} onResizeWidget={cycleWidgetSize} city={city} timezone={timezone} /></div>
+        </div>
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-50"><button type="button" onClick={() => window.open(`/${profile.username}`, "_blank")} className="px-5 py-2.5 rounded-xl border border-border text-primary text-sm font-medium hover:bg-surface-elevated">Preview</button><button type="button" onClick={save} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 disabled:opacity-60">{isSaving ? "Saving..." : "Save Changes"}</button></div>
         {toast && <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-border bg-surface px-4 py-2 text-sm text-text-primary shadow-xl">{toast}</div>}
       </main>
