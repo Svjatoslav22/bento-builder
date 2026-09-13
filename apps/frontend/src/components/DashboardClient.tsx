@@ -112,7 +112,17 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   function addWidget(name: string) {
     if (widgets.length >= MAX_WIDGETS) return;
     const id = name === "Profile Info" ? "profile" : name === "Yantarne FM" ? "spotify" : name.toLowerCase().replace(" ", "-");
-    if (!widgets.some((widget) => widget.type === id)) setWidgets((current) => [...current, { type: id, sizePreset: id === "profile" ? "L" : "M", config: id === "tech-stack" ? { technologies: "" } : {} } as DashboardWidget]);
+    if (!widgets.some((widget) => widget.type === id)) {
+      setWidgets((current) => [
+        ...current,
+        {
+          type: id,
+          sizePreset: id === "profile" ? "L" : "M",
+          config: id === "tech-stack" ? { technologies: "" } : {},
+        } as DashboardWidget,
+      ]);
+      setSelectedWidget(id);
+    }
   }
 
   function dragEnd(event: DragEndEvent) {
@@ -129,8 +139,50 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     async function persist() {
       setIsSaving(true);
       try {
-        const response = await fetch("/api/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...profileFields, avatarUrl, widgets: widgets.map((widget, position) => { const config = widget.config && typeof widget.config === "object" ? widget.config as Record<string, unknown> : {}; return { ...widget, sizePreset: sizes[widget.type] || widget.sizePreset, position, config: widget.type === "location" ? { ...config, city, timezone } : config }; }) }) });
-        setToast(response.ok ? "Saved" : "Failed to save");
+        const payload = {
+          ...profileFields,
+          avatarUrl: avatarUrl || null,
+          widgets: widgets.map((widget, position) => {
+            const config =
+              widget.config && typeof widget.config === "object" && !Array.isArray(widget.config)
+                ? { ...(widget.config as Record<string, unknown>) }
+                : {};
+            if (widget.type === "location") {
+              config.city = city;
+              config.timezone = timezone;
+            }
+            if (widget.type === "tech-stack") {
+              config.technologies = Array.isArray(config.technologies)
+                ? (config.technologies as unknown[]).map((item) => String(item).trim()).filter(Boolean).join(", ")
+                : typeof config.technologies === "string"
+                  ? config.technologies
+                  : "";
+            }
+            return {
+              id: widget.id,
+              type: widget.type,
+              sizePreset: sizes[widget.type] || widget.sizePreset || "M",
+              position,
+              config,
+            };
+          }),
+        };
+        const response = await fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          setToast("Failed to save");
+          return;
+        }
+        const saved = await response.json();
+        if (saved?.widgets) {
+          const loadedWidgets = [...saved.widgets].sort((a: DashboardWidget, b: DashboardWidget) => a.position - b.position);
+          setWidgets(loadedWidgets);
+          setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, widget.sizePreset || "M"])));
+        }
+        setToast("Saved");
       } catch {
         setToast("Failed to save");
       } finally {
