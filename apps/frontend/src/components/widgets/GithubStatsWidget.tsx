@@ -102,6 +102,12 @@ export default function GithubStatsWidget({
     setChartLoaded(false);
   }, [handle]);
 
+  useEffect(() => {
+    if (!handle || chartFailed || chartLoaded) return;
+    const timeout = window.setTimeout(() => setChartFailed(true), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [handle, chartFailed, chartLoaded]);
+
   return (
     <div
       className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`}

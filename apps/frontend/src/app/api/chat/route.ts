@@ -5,8 +5,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const SYSTEM_PROMPT =
-  "Ти — AI-клон розробника. Твоя мета — відповідати тільки на основі реального стеку та проєктів користувача. Ніколи не придумуй навички. Якщо запитують про Python, Java, C++, відповідай, що ти з цим не працюєш. Твій ключовий стек: JavaScript, TypeScript, React, Next.js, Tailwind CSS, Node.js, Express.js, NestJS, MongoDB, PostgreSQL. Твої основні проєкти: Student Platform (STETI Hub), Slick, Manifik, SiteMonitor, BentoBuilder. Спирайся виключно на цей контекст.";
+const UNSPECIFIED = "Не вказано";
 
 function getChatModel() {
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
@@ -43,7 +42,13 @@ export async function POST(req: Request) {
       );
     }
 
-    let payload: { messages?: CoreMessage[]; widgetId?: string };
+    let payload: {
+      messages?: CoreMessage[];
+      widgetId?: string;
+      name?: string;
+      bio?: string;
+      technologies?: string | string[];
+    };
     try {
       payload = await req.json();
     } catch {
@@ -58,19 +63,37 @@ export async function POST(req: Request) {
       return Response.json({ error: "messages are required" }, { status: 400 });
     }
 
+    let profileName = "";
+    let profileBio = "";
+    let profileStack = "";
     try {
-      const widget = await prisma.widget.findUnique({ where: { id: widgetId } });
+      const widget = await prisma.widget.findUnique({
+        where: { id: widgetId },
+        include: { profile: { include: { widgets: true } } },
+      });
       if (!widget) {
         return Response.json({ error: "Widget not found" }, { status: 404 });
       }
+      profileName = widget.profile.name?.trim() || "";
+      profileBio = widget.profile.bio?.trim() || "";
+      profileStack = technologiesFromWidgets(widget.profile.widgets);
     } catch (error) {
       return jsonError(error, "Failed to load chat widget");
     }
 
+    const name = textOrUnspecified(payload.name) !== UNSPECIFIED ? textOrUnspecified(payload.name) : textOrUnspecified(profileName);
+    const bio = textOrUnspecified(payload.bio) !== UNSPECIFIED ? textOrUnspecified(payload.bio) : textOrUnspecified(profileBio);
+    const technologies =
+      serializeTechnologies(payload.technologies) !== UNSPECIFIED
+        ? serializeTechnologies(payload.technologies)
+        : textOrUnspecified(profileStack);
+
+    const systemPrompt = `Ти — AI-асистент, який представляє розробника на ім'я ${name}. Твоя мета — відповідати на запитання про його досвід. Його технології: ${technologies}. Його біографія: ${bio}. КРИТИЧНЕ ПРАВИЛО: Відповідай ТІЛЬКИ на основі цих даних. Якщо користувач запитує про навички, досвід чи особисту інформацію, якої немає в цих змінних, ти ЗОБОВ'ЯЗАНИЙ відповісти: 'Користувач не надав такої інформації' (або 'Я не маю інформації про це'). Ніколи нічого не вигадуй.`;
+
     try {
       const result = await streamText({
         model,
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages,
         abortSignal: AbortSignal.timeout(45_000),
       });
@@ -85,6 +108,28 @@ export async function POST(req: Request) {
   } catch (error) {
     return jsonError(error, "Chat request failed");
   }
+}
+
+function textOrUnspecified(value: unknown): string {
+  if (typeof value !== "string") return UNSPECIFIED;
+  const text = value.trim();
+  if (!text || text === UNSPECIFIED) return UNSPECIFIED;
+  return text;
+}
+
+function serializeTechnologies(value: unknown): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => String(item).trim()).filter(Boolean);
+    return items.length ? items.join(", ") : UNSPECIFIED;
+  }
+  return textOrUnspecified(value);
+}
+
+function technologiesFromWidgets(widgets: { type: string; config: unknown }[]): string {
+  const techWidget = widgets.find((widget) => widget.type === "tech-stack");
+  const config = techWidget?.config;
+  if (!config || typeof config !== "object" || Array.isArray(config)) return "";
+  return serializeTechnologies((config as Record<string, unknown>).technologies);
 }
 
 function jsonError(error: unknown, fallback: string) {

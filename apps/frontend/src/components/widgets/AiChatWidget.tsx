@@ -1,5 +1,6 @@
 "use client";
 
+import { FormEvent } from "react";
 import { useChat, type Message } from "ai/react";
 import ReactMarkdown from "react-markdown";
 
@@ -8,9 +9,12 @@ type AiChatWidgetProps = {
   isEditing?: boolean;
   widget?: { id?: string; config?: unknown };
   profileName?: string | null;
+  profileBio?: string | null;
+  technologies?: string[] | string | null;
 };
 
 const DEFAULT_NAME = "user";
+const UNSPECIFIED = "Не вказано";
 
 function resolveDisplayName(profileName?: string | null, widget?: { config?: unknown }): string {
   if (profileName?.trim()) {
@@ -28,17 +32,43 @@ function resolveDisplayName(profileName?: string | null, widget?: { config?: unk
   return DEFAULT_NAME;
 }
 
+function formatTechnologies(value?: string[] | string | null): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => String(item).trim()).filter(Boolean);
+    return items.length ? items.join(", ") : UNSPECIFIED;
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+  return UNSPECIFIED;
+}
+
+
 export default function AiChatWidget({
   className = "",
   isEditing = false,
   widget,
   profileName,
+  profileBio,
+  technologies,
 }: AiChatWidgetProps) {
   const displayName = resolveDisplayName(profileName, widget);
+  const bio = profileBio?.trim() ? profileBio.trim() : UNSPECIFIED;
+  const stack = formatTechnologies(technologies);
+  const chatContext = {
+    widgetId: widget?.id || "",
+    name: displayName,
+    bio,
+    technologies: stack,
+  };
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: "/api/chat",
-    body: { widgetId: widget?.id || "" },
+    body: chatContext,
   });
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    handleSubmit(event, { body: chatContext });
+  }
 
   return (
     <div
@@ -88,7 +118,7 @@ export default function AiChatWidget({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-3 relative">
+      <form onSubmit={onSubmit} className="mt-3 relative">
         <input
           type="text"
           value={input}
