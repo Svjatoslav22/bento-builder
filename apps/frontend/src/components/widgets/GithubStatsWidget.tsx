@@ -2,16 +2,35 @@
 
 import { useEffect, useState } from "react";
 
+type GithubWidget = {
+  id?: string;
+  type?: string;
+  config?: unknown;
+};
+
 type GithubStatsWidgetProps = {
   className?: string;
   isEditing?: boolean;
   githubUrl?: string | null;
   username?: string | null;
+  widget?: GithubWidget | null;
 };
 
-function extractGithubUsername(githubUrl?: string | null, username?: string | null): string | null {
-  if (username?.trim()) {
-    return username.trim().replace(/^@/, "");
+function readConfig(widget?: GithubWidget | null): Record<string, unknown> {
+  const config = widget?.config;
+  return config && typeof config === "object" && !Array.isArray(config)
+    ? (config as Record<string, unknown>)
+    : {};
+}
+
+function extractGithubUsername(
+  configUsername?: string | null,
+  githubUrl?: string | null,
+  username?: string | null,
+): string | null {
+  const fromConfig = configUsername?.trim() || username?.trim();
+  if (fromConfig) {
+    return fromConfig.replace(/^@/, "");
   }
 
   if (githubUrl) {
@@ -90,30 +109,36 @@ export default function GithubStatsWidget({
   isEditing = false,
   githubUrl,
   username,
+  widget,
 }: GithubStatsWidgetProps) {
-  const handle = extractGithubUsername(githubUrl, username);
+  const config = readConfig(widget);
+  const configUsername = typeof config.username === "string" ? config.username.trim() : "";
+  const hasUsername = Boolean(configUsername || username?.trim());
+  const handle = extractGithubUsername(configUsername, githubUrl, username);
   const profileUrl = handle ? `https://github.com/${handle}` : githubUrl || "https://github.com";
-  const chartUrl = handle ? `https://ghchart.rshah.org/${handle}` : null;
-  const [chartFailed, setChartFailed] = useState(false);
+  const chartUrl = hasUsername && handle ? `https://ghchart.rshah.org/${handle}` : null;
+  const [hasError, setHasError] = useState(!hasUsername);
   const [chartLoaded, setChartLoaded] = useState(false);
 
   useEffect(() => {
-    setChartFailed(!handle);
+    setHasError(!hasUsername);
     setChartLoaded(false);
-  }, [handle]);
+  }, [hasUsername, handle]);
 
   useEffect(() => {
-    if (!handle || chartFailed || chartLoaded) return;
-    const timeout = window.setTimeout(() => setChartFailed(true), 4000);
+    if (!hasUsername || !chartUrl || hasError || chartLoaded) return;
+    const timeout = window.setTimeout(() => setHasError(true), 4000);
     return () => window.clearTimeout(timeout);
-  }, [handle, chartFailed, chartLoaded]);
+  }, [hasUsername, chartUrl, hasError, chartLoaded]);
+
+  const showFallback = !hasUsername || hasError || !chartUrl;
 
   return (
     <div
       className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`}
     >
       <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
-      {chartFailed || !chartUrl ? (
+      {showFallback ? (
         <GithubFallback handle={handle} profileUrl={profileUrl} isEditing={isEditing} />
       ) : (
         <div className="relative flex h-full min-h-0 flex-col">
@@ -131,10 +156,10 @@ export default function GithubStatsWidget({
             <img
               src={chartUrl}
               alt="GitHub contributions chart"
-              onError={() => setChartFailed(true)}
+              onError={() => setHasError(true)}
               onLoad={(event) => {
                 if (event.currentTarget.naturalWidth === 0) {
-                  setChartFailed(true);
+                  setHasError(true);
                   return;
                 }
                 setChartLoaded(true);

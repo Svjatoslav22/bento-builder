@@ -24,16 +24,25 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const session = await getSession();
   const isOwner = session?.user?.id === profile.userId;
 
+  const widgets = [...profile.widgets]
+    .sort((a, b) => a.position - b.position)
+    .map((widget) => ({
+      id: widget.id,
+      type: widget.type,
+      sizePreset: widget.sizePreset,
+      config: widget.config && typeof widget.config === "object" ? widget.config : {},
+    }));
+
   return (
     <div className="antialiased min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
       <BentoGrid
         profile={profile}
         isEditing={false}
-        widgetData={profile.widgets}
-        widgets={profile.widgets.sort((a, b) => a.position - b.position).map((widget) => widget.type)}
-        widgetSizes={Object.fromEntries(profile.widgets.map((widget) => [widget.type, widget.sizePreset]))}
-        city={String((profile.widgets.find((widget) => widget.type === "location")?.config as { city?: string } | undefined)?.city || "Kyiv, UA")}
-        timezone={String((profile.widgets.find((widget) => widget.type === "location")?.config as { timezone?: string } | undefined)?.timezone || "Europe/Kyiv")}
+        widgetData={widgets}
+        widgets={widgets.map((widget) => widget.type)}
+        widgetSizes={Object.fromEntries(widgets.map((widget) => [widget.type, widget.sizePreset]))}
+        city={String((widgets.find((widget) => widget.type === "location")?.config as { city?: string } | undefined)?.city || "Kyiv, UA")}
+        timezone={String((widgets.find((widget) => widget.type === "location")?.config as { timezone?: string } | undefined)?.timezone || "Europe/Kyiv")}
       />
 
       {isOwner && <EditProfileFab />}
