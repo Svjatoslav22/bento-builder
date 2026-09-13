@@ -3,6 +3,10 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+const SYSTEM_PROMPT =
+  "Ти — AI-клон розробника. Твоя мета — відповідати тільки на основі реального стеку та проєктів користувача. Ніколи не придумуй навички. Якщо запитують про Python, Java, C++, відповідай, що ти з цим не працюєш. Твій ключовий стек: JavaScript, TypeScript, React, Next.js, Tailwind CSS, Node.js, Express.js, NestJS, MongoDB, PostgreSQL. Твої основні проєкти: Student Platform (STETI Hub), Slick, Manifik, SiteMonitor, BentoBuilder. Спирайся виключно на цей контекст.";
 
 function getChatModel() {
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
@@ -35,7 +39,7 @@ export async function POST(req: Request) {
     if (!model) {
       return Response.json(
         { error: "AI is not configured. Set OPENROUTER_API_KEY or GEMINI_API_KEY." },
-        { status: 503 },
+        { status: 400 },
       );
     }
 
@@ -54,26 +58,52 @@ export async function POST(req: Request) {
       return Response.json({ error: "messages are required" }, { status: 400 });
     }
 
-    const widget = await prisma.widget.findUnique({
-      where: { id: widgetId },
-    });
-
-    if (!widget) {
-      return new Response("Widget not found", { status: 404 });
+    try {
+      const widget = await prisma.widget.findUnique({ where: { id: widgetId } });
+      if (!widget) {
+        return Response.json({ error: "Widget not found" }, { status: 404 });
+      }
+    } catch (error) {
+      return jsonError(error, "Failed to load chat widget");
     }
 
-    const systemPrompt = "Ти — AI-клон розробника. Твоя мета — відповідати тільки на основі реального стеку та проєктів користувача. Ніколи не придумуй навички. Якщо запитують про Python, Java, C++, відповідай, що ти з цим не працюєш. Твій ключовий стек: JavaScript, TypeScript, React, Next.js, Tailwind CSS, Node.js, Express.js, NestJS, MongoDB, PostgreSQL. Твої основні проєкти: Student Platform (STETI Hub), Slick, Manifik, SiteMonitor, BentoBuilder. Спирайся виключно на цей контекст.";
+    try {
+      const result = await streamText({
+        model,
+        system: SYSTEM_PROMPT,
+        messages,
+        abortSignal: AbortSignal.timeout(45_000),
+      });
 
-    const result = await streamText({
-      model,
-      system: systemPrompt,
-      messages,
-    });
-
-    return result.toDataStreamResponse();
+      return result.toDataStreamResponse({
+        getErrorMessage: (error) =>
+          error instanceof Error ? error.message : "The model stopped streaming unexpectedly.",
+      });
+    } catch (error) {
+      return jsonError(error, "OpenRouter request failed");
+    }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    console.error("Chat API error:", errorMessage);
-    return Response.json({ error: errorMessage }, { status: 503 });
+    return jsonError(error, "Chat request failed");
   }
+}
+
+function jsonError(error: unknown, fallback: string) {
+  const errorMessage = error instanceof Error && error.message.trim() ? error.message : fallback;
+  const status = statusFromError(error);
+  console.error("Chat API error:", errorMessage);
+  return Response.json({ error: errorMessage }, { status });
+}
+
+function statusFromError(error: unknown): number {
+  const status =
+    error && typeof error === "object" && "status" in error
+      ? Number((error as { status: unknown }).status)
+      : Number.NaN;
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  if (status === 429 || /rate limit/i.test(message)) return 429;
+  if (status === 408 || /timeout|timed out|abort/i.test(message)) return 408;
+  if (status >= 400 && status < 500) return status;
+  if (status >= 500 && status < 600) return 502;
+  return 502;
 }
