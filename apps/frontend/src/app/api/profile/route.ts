@@ -18,8 +18,9 @@ export async function GET() {
 
     return NextResponse.json({ profile: profile ?? null });
   } catch (error) {
-    console.error("GET /api/profile", error);
-    return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("GET /api/profile", errorMessage);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -50,35 +51,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Username is already taken" }, { status: 409 });
     }
 
-    const existingProfile = await prisma.profile.findUnique({ where: { userId: session.user.id } });
-    if (existingProfile) {
-      return NextResponse.json({ error: "Profile already exists" }, { status: 409 });
-    }
+    const profileFields = {
+      username,
+      isOnboarded: true,
+      name,
+      title: optionalText(body.title),
+      bio: optionalText(body.bio),
+      avatarUrl: optionalText(body.avatarUrl),
+      linkedinUrl: optionalText(body.linkedinUrl),
+      githubUrl: optionalText(body.githubUrl),
+      resumeUrl: optionalText(body.resumeUrl),
+    };
+    const defaultWidgets = normalizeWidgets(body.defaultWidgets);
 
-    const profile = await prisma.profile.create({
-      data: {
+    const profile = await prisma.profile.upsert({
+      where: { userId: session.user.id },
+      create: {
         userId: session.user.id,
-        username,
-        isOnboarded: true,
-        name,
-        title: optionalText(body.title),
-        bio: optionalText(body.bio),
-        avatarUrl: optionalText(body.avatarUrl),
-        linkedinUrl: optionalText(body.linkedinUrl),
-        githubUrl: optionalText(body.githubUrl),
-        resumeUrl: optionalText(body.resumeUrl),
-        widgets: { create: normalizeWidgets(body.defaultWidgets) },
+        ...profileFields,
+        widgets: { create: defaultWidgets.map(({ id: _id, ...widget }) => widget) },
       },
+      update: profileFields,
       include: { widgets: true },
     });
 
-    return NextResponse.json(profile, { status: 201 });
+    if (profile.widgets.length === 0 && defaultWidgets.length > 0) {
+      await prisma.widget.createMany({
+        data: defaultWidgets.map(({ id: _id, ...widget }) => ({
+          profileId: profile.id,
+          ...widget,
+        })),
+      });
+    }
+
+    const saved = await prisma.profile.findUnique({
+      where: { id: profile.id },
+      include: { widgets: true },
+    });
+
+    return NextResponse.json(saved, { status: 200 });
   } catch (error) {
-    console.error("POST /api/profile", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("POST /api/profile", errorMessage);
     if (isUniqueConstraint(error)) {
       return NextResponse.json({ error: "Username is already taken" }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -154,11 +172,12 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(saved);
   } catch (error) {
-    console.error("PATCH /api/profile", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("PATCH /api/profile", errorMessage);
     if (isUniqueConstraint(error)) {
       return NextResponse.json({ error: "Username is already taken" }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -184,7 +203,8 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
 }
 
 function isUniqueConstraint(error: unknown) {
-  return Boolean(error) && typeof error === "object" && "code" in error && (error as { code: unknown }).code === "P2002";
+  if (error == null || typeof error !== "object") return false;
+  return "code" in error && (error as { code: unknown }).code === "P2002";
 }
 
 function jsonValue(value: unknown): Prisma.InputJsonValue {

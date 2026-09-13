@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
@@ -32,16 +32,78 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const persistTimer = useRef<number | null>(null);
   const origin = useSyncExternalStore(() => () => undefined, () => window.location.origin, () => "");
   const publicLink = origin ? `${origin}/${profile.username}` : "";
   const activeWidget = widgets.find((widget) => widget.type === selectedWidget) || null;
 
+  function serializeWidgets(list: DashboardWidget[]) {
+    return list.map((widget, position) => {
+      const config =
+        widget.config && typeof widget.config === "object" && !Array.isArray(widget.config)
+          ? { ...(widget.config as Record<string, unknown>) }
+          : {};
+      if (widget.type === "location") {
+        config.city = city;
+        config.timezone = timezone;
+      }
+      if (widget.type === "tech-stack") {
+        config.technologies = Array.isArray(config.technologies)
+          ? (config.technologies as unknown[]).map((item) => String(item).trim()).filter(Boolean).join(", ")
+          : typeof config.technologies === "string"
+            ? config.technologies
+            : "";
+      }
+      return {
+        id: widget.id,
+        type: widget.type,
+        sizePreset: sizes[widget.type] || widget.sizePreset || "M",
+        position,
+        config,
+      };
+    });
+  }
+
+  async function persistToPrisma(list: DashboardWidget[], showToast = false) {
+    const response = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...profileFields,
+        avatarUrl: avatarUrl || null,
+        widgets: serializeWidgets(list),
+      }),
+    });
+    if (!response.ok) {
+      if (showToast) setToast("Failed to save");
+      throw new Error("Failed to save");
+    }
+    const saved = await response.json();
+    if (saved?.widgets) {
+      const loadedWidgets = [...saved.widgets].sort((a: DashboardWidget, b: DashboardWidget) => a.position - b.position);
+      setWidgets(loadedWidgets);
+      setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, widget.sizePreset || "M"])));
+    }
+    if (showToast) setToast("Saved");
+    return saved;
+  }
+
   function updateWidget(id: string, newWidgetData: Partial<DashboardWidget>) {
-    setWidgets((current) => current.map((widget) => {
-      if (widget.id !== id && widget.type !== id) return widget;
-      const nextConfig = newWidgetData.config;
-      return { ...widget, ...newWidgetData, config: nextConfig && typeof nextConfig === "object" ? nextConfig : widget.config && typeof widget.config === "object" ? widget.config : {} };
-    }));
+    setWidgets((current) => {
+      const next = current.map((widget) => {
+        if (widget.id !== id && widget.type !== id) return widget;
+        const nextConfig = newWidgetData.config;
+        return { ...widget, ...newWidgetData, config: nextConfig && typeof nextConfig === "object" ? nextConfig : widget.config && typeof widget.config === "object" ? widget.config : {} };
+      });
+      const updated = next.find((widget) => widget.id === id || widget.type === id);
+      if (updated?.type === "tech-stack" && newWidgetData.config) {
+        if (persistTimer.current) window.clearTimeout(persistTimer.current);
+        persistTimer.current = window.setTimeout(() => {
+          persistToPrisma(next).catch(() => undefined);
+        }, 400);
+      }
+      return next;
+    });
   }
 
   async function handleFileUpload(file: File) {
@@ -111,7 +173,17 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
 
   function addWidget(name: string) {
     if (widgets.length >= MAX_WIDGETS) return;
-    const id = name === "Profile Info" ? "profile" : name === "Yantarne FM" ? "spotify" : name.toLowerCase().replace(" ", "-");
+    const types: Record<string, string> = {
+      "Profile Info": "profile",
+      "Yantarne FM": "spotify",
+      "Tech Stack": "tech-stack",
+      "GitHub Activity": "github-stats",
+      Portfolio: "portfolio",
+      Location: "location",
+      Resume: "resume",
+      "AI Chat": "ai-chat",
+    };
+    const id = types[name] || name.toLowerCase().replaceAll(" ", "-");
     if (!widgets.some((widget) => widget.type === id)) {
       setWidgets((current) => [
         ...current,
@@ -139,50 +211,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     async function persist() {
       setIsSaving(true);
       try {
-        const payload = {
-          ...profileFields,
-          avatarUrl: avatarUrl || null,
-          widgets: widgets.map((widget, position) => {
-            const config =
-              widget.config && typeof widget.config === "object" && !Array.isArray(widget.config)
-                ? { ...(widget.config as Record<string, unknown>) }
-                : {};
-            if (widget.type === "location") {
-              config.city = city;
-              config.timezone = timezone;
-            }
-            if (widget.type === "tech-stack") {
-              config.technologies = Array.isArray(config.technologies)
-                ? (config.technologies as unknown[]).map((item) => String(item).trim()).filter(Boolean).join(", ")
-                : typeof config.technologies === "string"
-                  ? config.technologies
-                  : "";
-            }
-            return {
-              id: widget.id,
-              type: widget.type,
-              sizePreset: sizes[widget.type] || widget.sizePreset || "M",
-              position,
-              config,
-            };
-          }),
-        };
-        const response = await fetch("/api/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          setToast("Failed to save");
-          return;
-        }
-        const saved = await response.json();
-        if (saved?.widgets) {
-          const loadedWidgets = [...saved.widgets].sort((a: DashboardWidget, b: DashboardWidget) => a.position - b.position);
-          setWidgets(loadedWidgets);
-          setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, widget.sizePreset || "M"])));
-        }
-        setToast("Saved");
+        await persistToPrisma(widgets, true);
       } catch {
         setToast("Failed to save");
       } finally {

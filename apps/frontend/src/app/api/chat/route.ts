@@ -56,43 +56,13 @@ export async function POST(req: Request) {
 
     const widget = await prisma.widget.findUnique({
       where: { id: widgetId },
-      include: {
-        profile: {
-          include: {
-            user: true,
-            widgets: true,
-          },
-        },
-      },
     });
 
     if (!widget) {
       return new Response("Widget not found", { status: 404 });
     }
 
-    const profile = widget.profile;
-    const widgetConfig = isRecord(widget.config) ? widget.config : {};
-    const widgetContext = typeof widgetConfig.context === "string" ? widgetConfig.context.trim() : "";
-    const techStack = readTechStack(profile.widgets);
-    const userName = profile.user?.name?.trim() || profile.name?.trim() || "User";
-    const title = profile.title?.trim() || "not specified";
-    const bio = profile.bio?.trim() || "not specified";
-    const stackLine = techStack.length
-      ? techStack.join(", ")
-      : "none listed — do not infer or invent any languages, frameworks, or tools";
-
-    const systemPrompt = `Ти цифровий асистент (AI-клон) розробника.
-Ім'я користувача (user.name): ${userName}.
-Посада з профілю: ${title}.
-Біо з профілю: ${bio}.
-Реальний Tech Stack з віджета: ${stackLine}.
-Додатковий контекст віджета AI Chat: ${widgetContext || "немає"}.
-
-Правила:
-- Спирайся ВИКЛЮЧНО на ці дані профілю, ім'я користувача та реальний стек.
-- ЗАБОРОНЕНО вигадувати навички, мови чи інструменти, яких немає у Tech Stack (наприклад Python чи Java, якщо їх там немає).
-- Якщо стек порожній або навичку не зазначено — чесно скажи, що цієї інформації немає в профілі.
-- Відповідай коротко і професійно.`;
+    const systemPrompt = "Ти — AI-клон розробника. Твоя мета — відповідати тільки на основі реального стеку та проєктів користувача. Ніколи не придумуй навички. Якщо запитують про Python, Java, C++, відповідай, що ти з цим не працюєш. Твій ключовий стек: JavaScript, TypeScript, React, Next.js, Tailwind CSS, Node.js, Express.js, NestJS, MongoDB, PostgreSQL. Твої основні проєкти: Student Platform (STETI Hub), Slick, Manifik, SiteMonitor, BentoBuilder. Спирайся виключно на цей контекст.";
 
     const result = await streamText({
       model,
@@ -102,25 +72,8 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse();
   } catch (error) {
-    console.error("Chat API error:", error);
-    return Response.json({ error: "Chat is temporarily unavailable" }, { status: 503 });
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Chat API error:", errorMessage);
+    return Response.json({ error: errorMessage }, { status: 503 });
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function readTechStack(widgets: { type: string; config: unknown }[]): string[] {
-  const techWidget = widgets.find((item) => item.type === "tech-stack");
-  if (!techWidget || !isRecord(techWidget.config)) return [];
-
-  const value = techWidget.config.technologies;
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean);
-  }
-  if (typeof value === "string" && value.trim()) {
-    return value.split(/[,|\n]+/).map((item) => item.trim()).filter(Boolean);
-  }
-  return [];
 }

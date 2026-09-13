@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
 type GithubStatsWidgetProps = {
   className?: string;
   isEditing?: boolean;
@@ -28,40 +24,11 @@ function extractGithubUsername(githubUrl?: string | null, username?: string | nu
   return null;
 }
 
-function GithubFallback({
-  handle,
-  profileUrl,
-  message,
-}: {
-  handle: string | null;
-  profileUrl: string;
-  message: string;
-}) {
-  const avatarUrl = handle ? `https://github.com/${encodeURIComponent(handle)}.png?size=120` : null;
-
+function GitHubMark() {
   return (
-    <div className="flex h-full min-h-[110px] flex-col items-center justify-center gap-3 p-4 text-center">
-      {avatarUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={avatarUrl}
-          alt={`${handle} avatar`}
-          className="h-14 w-14 rounded-full border border-border object-cover"
-        />
-      )}
-      <div>
-        {handle && <p className="text-sm font-medium text-text-primary">@{handle}</p>}
-        <p className={`text-xs text-text-secondary ${handle ? "mt-1" : ""}`}>{message}</p>
-        <a
-          href={profileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-block text-xs font-medium text-cyan-400 hover:text-cyan-300"
-        >
-          Open GitHub profile →
-        </a>
-      </div>
-    </div>
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.701-1.333-1.701-1.09-.745.083-.729.083-.729 1.205.084 1.84 1.236 1.84 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+    </svg>
   );
 }
 
@@ -72,86 +39,48 @@ export default function GithubStatsWidget({
   username,
 }: GithubStatsWidgetProps) {
   const handle = extractGithubUsername(githubUrl, username);
-  const chartUrl = handle ? `https://ghchart.rshah.org/${encodeURIComponent(handle)}` : null;
-  const avatarUrl = handle ? `https://github.com/${encodeURIComponent(handle)}.png?size=120` : null;
   const profileUrl = handle ? `https://github.com/${handle}` : githubUrl || "https://github.com";
-  const [chartFailed, setChartFailed] = useState(false);
-
-  useEffect(() => {
-    setChartFailed(false);
-  }, [handle]);
-
-  const content = (
-    <>
-      <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-orange-500/10 blur-3xl" />
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-orange-400/90">
-            Activity
-          </p>
-          <h3 className="truncate text-base font-semibold text-text-primary">
-            GitHub Activity
-          </h3>
-          {handle && <p className="truncate text-xs text-text-secondary">@{handle}</p>}
-        </div>
-        {avatarUrl && (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white/5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarUrl}
-              alt={`${handle} avatar`}
-              className="h-full w-full object-cover"
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-border/60 bg-[#0d1117] p-2">
-        {!handle || chartFailed ? (
-          <GithubFallback
-            handle={handle}
-            profileUrl={profileUrl}
-            message={
-              !handle
-                ? "Add a GitHub username in widget settings or profile URL."
-                : "Contribution chart unavailable — open GitHub profile."
-            }
-          />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={chartUrl}
-            src={chartUrl || ""}
-            alt={`${handle} GitHub contribution activity`}
-            className="w-full h-auto object-contain"
-            onError={() => setChartFailed(true)}
-          />
-        )}
-      </div>
-    </>
-  );
-
-  if (isEditing) {
-    return (
-      <div
-        className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`}
-      >
-        {content}
-      </div>
-    );
-  }
+  const initial = (handle || "G").slice(0, 1).toUpperCase();
 
   return (
-    <a
-      href={profileUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 transition hover:border-cyan-500/30 ${className}`}
+    <div
+      className={`bento-card col-span-2 row-span-1 relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`}
     >
-      {content}
-    </a>
+      <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
+          <h3 className="text-base font-semibold text-text-primary">GitHub Activity</h3>
+          <p className="mt-1 truncate text-sm text-text-secondary">
+            {handle ? `@${handle}` : "Add a GitHub username in widget settings"}
+          </p>
+        </div>
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-[#16161A] text-sm font-semibold text-zinc-200">
+          {initial}
+        </div>
+      </div>
+
+      <div className="relative mt-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-zinc-400">
+          <GitHubMark />
+          <span className="text-xs font-medium">github.com{handle ? `/${handle}` : ""}</span>
+        </div>
+        {!isEditing && (
+          <a
+            href={profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black transition hover:bg-zinc-200"
+          >
+            Open GitHub profile
+          </a>
+        )}
+        {isEditing && (
+          <span className="inline-flex items-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-secondary">
+            Open GitHub profile
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
