@@ -131,19 +131,11 @@ export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: num
 
       <div className="p-5 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary tracking-wide">
-          Add Widget
-          {atLimit && <span className="ml-2 text-[10px] font-normal text-text-secondary">Max 6 widgets reached</span>}
+          Add Widget <br /> 
+          <br />
+          {atLimit && <span className="ml-2 text-[10px] font-normal text-text-secondary"> Max 6 widgets reached</span>}
         </h2>
-        <div className="w-6 h-6 rounded bg-surface-elevated border border-border flex items-center justify-center text-text-secondary cursor-pointer hover:text-white transition">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </div>
+        
       </div>
 
       <div className="p-4 flex-1 overflow-y-auto space-y-3">
