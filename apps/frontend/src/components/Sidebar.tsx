@@ -131,9 +131,8 @@ export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: num
 
       <div className="p-5 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary tracking-wide">
-          Add Widget <br /> 
-          <br />
-          {atLimit && <span className="ml-2 text-[10px] font-normal text-text-secondary"> Max 6 widgets reached</span>}
+          Add Widget<br /> 
+          {atLimit && <span className="ml-2 text-[10px] font-normal text-text-secondary">Max 6 widgets </span>}
         </h2>
         
       </div>
