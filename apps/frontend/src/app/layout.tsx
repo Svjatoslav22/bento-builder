@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Bento Builder",
   description: "Build your perfect bento grid",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

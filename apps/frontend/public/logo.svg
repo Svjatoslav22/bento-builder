@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 48" width="250" height="48">
+  <rect x="0" y="0" width="19" height="48" rx="6" fill="#DCDFE6"/>
+  <rect x="23" y="0" width="19" height="23" rx="6" fill="#FFFFFF"/>
+  <rect x="23" y="25" width="19" height="23" rx="6" fill="#6D5BFF"/>
+  <text x="56" y="34" font-family="Inter, Geist, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" letter-spacing="-0.5" fill="#FFFFFF">Bento Builder</text>
+</svg>
