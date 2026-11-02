@@ -5,9 +5,7 @@ import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://bento-builder-frontend.vercel.app");
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bento-builder-frontend.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
