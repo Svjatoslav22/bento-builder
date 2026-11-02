@@ -224,7 +224,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
 
   return (
     <div className="antialiased h-screen flex flex-col md:flex-row overflow-hidden bg-background">
-      <Sidebar widgetCount={widgets.length} onAddWidget={addWidget} />
+      <Sidebar widgetCount={widgets.length} addedWidgetTypes={widgets.map((widget) => widget.type)} onAddWidget={addWidget} />
       <main className="flex-1 h-full canvas-bg flex flex-col relative">
         <div className="flex-1 overflow-y-auto w-full flex flex-col">
           <div className="sticky top-0 z-[100] flex items-center justify-between gap-4 border-b border-border bg-[#09090B]/90 px-8 py-2.5 backdrop-blur-xl"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><CopyLinkButton value={publicLink} /></div>

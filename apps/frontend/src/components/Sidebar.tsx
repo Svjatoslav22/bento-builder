@@ -6,6 +6,7 @@ const iconClass =
 const libraryItems = [
   {
     name: "Profile Info",
+    type: "profile",
     description: "Avatar, bio & socials",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,6 +21,7 @@ const libraryItems = [
   },
   {
     name: "Yantarne FM",
+    type: "spotify",
     description: "Live radio stream",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,6 +42,7 @@ const libraryItems = [
   },
   {
     name: "Tech Stack",
+    type: "tech-stack",
     description: "React, Next.js & more",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,6 +57,7 @@ const libraryItems = [
   },
   {
     name: "GitHub Activity",
+    type: "github-stats",
     description: "Repos & contributions",
     icon: (
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -63,6 +67,7 @@ const libraryItems = [
   },
   {
     name: "Portfolio",
+    type: "portfolio",
     description: "Project showcase",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,6 +82,7 @@ const libraryItems = [
   },
   {
     name: "AI Chat",
+    type: "ai-chat",
     description: "Interactive clone",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,6 +97,7 @@ const libraryItems = [
   },
   {
     name: "Location",
+    type: "location",
     description: "Timezone info",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,6 +118,7 @@ const libraryItems = [
   },
   {
     name: "Resume",
+    type: "resume",
     description: "Downloadable PDF",
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +129,7 @@ const libraryItems = [
   },
 ];
 
-export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: number; onAddWidget: (name: string) => void }) {
+export default function Sidebar({ widgetCount, addedWidgetTypes = [], onAddWidget }: { widgetCount: number; addedWidgetTypes?: string[]; onAddWidget: (name: string) => void }) {
   const atLimit = widgetCount >= 6;
   return (
     <aside className="w-full md:w-[260px] h-full bg-surface border-r border-border flex flex-col flex-shrink-0 z-20">
@@ -142,13 +150,17 @@ export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: num
           Available Components
         </p>
 
-        {libraryItems.map((item) => (
+        {libraryItems.map((item) => {
+          const isAdded = addedWidgetTypes.includes(item.type);
+          const isDisabled = atLimit || isAdded;
+          return (
           <button
             key={item.name}
             type="button"
-            disabled={atLimit}
+            disabled={isDisabled}
+            title={isAdded ? "Already added" : undefined}
             onClick={() => onAddWidget(item.name)}
-            className={`group flex w-full items-center gap-3 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors ${atLimit ? "pointer-events-none cursor-not-allowed opacity-40" : "cursor-grab active:cursor-grabbing"}`}
+            className={`group flex w-full items-center gap-3 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors ${isDisabled ? "cursor-not-allowed opacity-40 grayscale" : "cursor-grab active:cursor-grabbing"}`}
           >
             <div
               className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconClass}`}
@@ -157,7 +169,7 @@ export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: num
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">{item.name}</p>
-              <p className="text-[10px] text-text-secondary">{item.description}</p>
+              <p className="text-[10px] text-text-secondary">{isAdded ? "Already added" : item.description}</p>
             </div>
             <svg
               className="w-4 h-4 text-border group-hover:text-text-secondary"
@@ -173,7 +185,8 @@ export default function Sidebar({ widgetCount, onAddWidget }: { widgetCount: num
               />
             </svg>
           </button>
-        ))}
+          );
+        })}
       </div>
     </aside>
   );
