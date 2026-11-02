@@ -128,14 +128,14 @@ export default function GithubStatsWidget({
     return () => window.clearTimeout(timeout);
   }, [isMounted, username, chartUrl, hasError, chartLoaded]);
 
-  const shellClass = `bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface p-5 ${className}`;
+  const shellClass = `bento-card col-span-2 row-span-1 relative flex h-full flex-col overflow-hidden rounded-[24px] border border-border bg-surface px-5 pt-3.5 pb-2.5 ${className}`;
 
   if (!isMounted) {
     return (
       <div className={shellClass}>
         <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
-        <div className="mb-3 h-10 w-40 animate-pulse rounded-md bg-zinc-800/80" />
-        <div className="min-h-[92px] flex-1 animate-pulse rounded-md bg-zinc-800/80" />
+        <div className="mb-2 h-8 w-40 animate-pulse rounded-md bg-zinc-800/80" />
+        <div className="min-h-0 flex-1 animate-pulse rounded-md bg-zinc-800/80" />
       </div>
     );
   }
@@ -153,14 +153,17 @@ export default function GithubStatsWidget({
     <div className={shellClass}>
       <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
       <div className="relative flex h-full min-h-0 flex-col">
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-1.5 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
-            <h3 className="truncate text-base font-semibold text-text-primary">GitHub Activity</h3>
-            <p className="truncate text-xs text-text-secondary">@{username}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Activity</p>
+              <span className="text-xs text-zinc-500">•</span>
+              <p className="truncate text-xs text-text-secondary">@{username}</p>
+            </div>
+            <h3 className="truncate text-base font-semibold leading-tight text-text-primary">GitHub Activity</h3>
           </div>
         </div>
-        <div className="relative min-h-[92px] flex-1 overflow-hidden rounded-md">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-md">
           {!chartLoaded && (
             <div className="absolute inset-0 animate-pulse rounded-md bg-zinc-800/80" />
           )}
@@ -175,7 +178,7 @@ export default function GithubStatsWidget({
               }
               setChartLoaded(true);
             }}
-            className={`w-full rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
+            className={`h-full w-full object-contain object-left-top rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
           />
         </div>
       </div>
