@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getWidgetAllowedSizes, getValidWidgetSize } from "@/lib/widgets";
 
 type SettingsPanelProps = {
   selectedWidget: string;
@@ -27,10 +28,15 @@ const inputClass = "w-full rounded-lg border border-border bg-[#1A1A1D] px-3 py-
 export default function SettingsPanel({ selectedWidget, activeWidgetType: activeWidgetTypeProp, selectedSize, onSizeChange, onRemove, avatarUrl, onAvatarChange, city, timezone, onCityChange, onTimezoneChange, profileFields, onProfileChange, activeWidget, updateWidget, isUploading, onResumeUpload }: SettingsPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
-  const sizeLabel = selectedSize === "S" ? "1x1" : selectedSize === "M" ? "2x1" : selectedSize === "Wide" ? "3x1" : "2x2";
+
+
+
   const panelRef = useRef<HTMLElement>(null);
   const activeWidgetType = activeWidgetTypeProp || selectedWidget;
   const safeWidgetType = typeof activeWidgetType === "string" ? activeWidgetType : "profile";
+  const allowedSizes = getWidgetAllowedSizes(safeWidgetType);
+  const currentSize = getValidWidgetSize(safeWidgetType, selectedSize);
+  const sizeLabel = currentSize === "S" ? "1x1" : currentSize === "M" ? "2x1" : currentSize === "Wide" ? "3x1" : "2x2";
   const activeWidgetLabel = safeWidgetType === "ai-chat" ? "AI Chat" : safeWidgetType === "spotify" ? "Yantarne FM" : safeWidgetType.charAt(0).toUpperCase() + safeWidgetType.slice(1);
   const widgetContent = activeWidget?.config && typeof activeWidget.config === "object" ? activeWidget.config as Record<string, unknown> : {};
   const updateContent = (field: string, value: string) => updateWidget(activeWidget?.id || selectedWidget, { config: { ...widgetContent, [field]: value } });
@@ -50,7 +56,7 @@ export default function SettingsPanel({ selectedWidget, activeWidgetType: active
         {safeWidgetType === "tech-stack" && <label className="block text-xs font-medium text-text-secondary">Technologies<input value={Array.isArray(widgetContent.technologies) ? (widgetContent.technologies as string[]).join(", ") : String(widgetContent.technologies ?? "")} onChange={(event) => updateContent("technologies", event.target.value)} className={`${inputClass} mt-1.5`} placeholder="React, Next.js, TypeScript" /></label>}
         {safeWidgetType === "github-stats" && <label className="block text-xs font-medium text-text-secondary">GitHub username<input value={String(widgetContent.username || "")} onChange={(event) => updateContent("username", event.target.value)} className={`${inputClass} mt-1.5`} placeholder="octocat" /></label>}
         <hr className="border-border" />
-        <div className="space-y-2"><label className="flex items-center justify-between text-xs font-medium text-text-secondary">Size<span className="rounded bg-surface-elevated px-1.5 py-0.5">{sizeLabel}</span></label><div className="flex gap-1 rounded-xl border border-border bg-[#1A1A1D] p-1">{["S", "M", "L", "Wide"].map((size) => <button key={size} type="button" onClick={() => onSizeChange(size)} className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${selectedSize === size ? "bg-white text-black" : "text-text-secondary hover:text-white"}`}>{size}</button>)}</div></div>
+        <div className="space-y-2"><label className="flex items-center justify-between text-xs font-medium text-text-secondary">Size<span className="rounded bg-surface-elevated px-1.5 py-0.5">{sizeLabel}</span></label><div className="flex gap-1 rounded-xl border border-border bg-[#1A1A1D] p-1">{allowedSizes.map((size) => <button key={size} type="button" onClick={() => onSizeChange(size)} className={`flex-1 rounded-lg py-1.5 text-xs font-medium ${currentSize === size ? "bg-white text-black" : "text-text-secondary hover:text-white"}`}>{size}</button>)}</div></div>
         <hr className="border-border" />
         {safeWidgetType === "location" && <div className="space-y-3"><label className="block text-xs font-medium text-text-secondary">City / Label<input value={city} onChange={(event) => onCityChange(event.target.value)} className={`${inputClass} mt-1.5`} /></label><label className="block text-xs font-medium text-text-secondary">Timezone<select value={timezone} onChange={(event) => onTimezoneChange(event.target.value)} className={`${inputClass} mt-1.5`}><option>Europe/Kyiv</option><option>Europe/London</option><option>Europe/Warsaw</option><option>America/New_York</option><option>America/Los_Angeles</option><option>Asia/Dubai</option><option>Asia/Tokyo</option></select></label></div>}
         {safeWidgetType === "profile" && <div className="space-y-3"><label className="text-xs font-medium text-text-secondary">Social Links</label><input value={profileFields.linkedinUrl || ""} onChange={(event) => onProfileChange("linkedinUrl", event.target.value)} className={inputClass} placeholder="https://linkedin.com/in/yourname" /><input value={profileFields.githubUrl || ""} onChange={(event) => onProfileChange("githubUrl", event.target.value)} className={inputClass} placeholder="https://github.com/yourname" /></div>}

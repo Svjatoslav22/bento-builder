@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getValidWidgetSize } from "@/lib/widgets";
 
 export async function GET() {
   try {
@@ -241,7 +242,7 @@ function normalizeWidgets(value: unknown) {
     return {
       id: typeof item.id === "string" && item.id.trim() ? item.id : undefined,
       type,
-      sizePreset: String(item.sizePreset ?? item.size ?? "M"),
+      sizePreset: getValidWidgetSize(type, item.sizePreset != null ? String(item.sizePreset) : item.size != null ? String(item.size) : undefined),
       position,
       config: jsonValue(rawConfig),
     };

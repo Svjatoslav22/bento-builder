@@ -5,6 +5,7 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 import BentoGrid, { ProfileData, WidgetData } from "@/components/BentoGrid";
+import { getWidgetAllowedSizes, getValidWidgetSize } from "@/lib/widgets";
 import Sidebar from "@/components/Sidebar";
 import SettingsPanel from "@/components/SettingsPanel";
 import LogoutButton from "@/components/LogoutButton";
@@ -21,7 +22,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   const router = useRouter();
   const [profileState, setProfileState] = useState(profile);
   const [profileFields, setProfileFields] = useState<EditableProfile>(profile);
-  const [sizes, setSizes] = useState<Record<string, string>>(() => Object.fromEntries(profile.widgets.map((widget) => [widget.type, widget.sizePreset || "M"])));
+  const [sizes, setSizes] = useState<Record<string, string>>(() => Object.fromEntries(profile.widgets.map((widget) => [widget.type, getValidWidgetSize(widget.type, widget.sizePreset)])));
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => [...profile.widgets].sort((a, b) => a.position - b.position));
   const [selectedWidget, setSelectedWidget] = useState("profile");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl || "");
@@ -57,7 +58,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
       return {
         id: widget.id,
         type: widget.type,
-        sizePreset: sizes[widget.type] || widget.sizePreset || "M",
+        sizePreset: getValidWidgetSize(widget.type, sizes[widget.type] || widget.sizePreset),
         position,
         config,
       };
@@ -82,7 +83,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     if (saved?.widgets) {
       const loadedWidgets = [...saved.widgets].sort((a: DashboardWidget, b: DashboardWidget) => a.position - b.position);
       setWidgets(loadedWidgets);
-      setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, widget.sizePreset || "M"])));
+      setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, getValidWidgetSize(widget.type, widget.sizePreset)])));
     }
     if (showToast) setToast("Saved");
     return saved;
@@ -136,7 +137,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
       setProfileState(loaded);
       setProfileFields(loaded);
       setWidgets(loadedWidgets);
-      setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, widget.sizePreset || "M"])));
+      setSizes(Object.fromEntries(loadedWidgets.map((widget: DashboardWidget) => [widget.type, getValidWidgetSize(widget.type, widget.sizePreset)])));
       const location = loadedWidgets.find((widget: DashboardWidget) => widget.type === "location");
       const locationConfig = location?.config && typeof location.config === "object" ? location.config as Record<string, unknown> : {};
       setCity(String(locationConfig.city || "Kyiv, UA"));
@@ -147,7 +148,9 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   }, [router]);
 
   function changeSize(size: string) {
-    setSizes((current) => ({ ...current, [selectedWidget]: size }));
+    const validSize = getValidWidgetSize(selectedWidget, size);
+    setSizes((current) => ({ ...current, [selectedWidget]: validSize }));
+    updateWidget(selectedWidget, { sizePreset: validSize });
   }
 
   function removeWidget(id = selectedWidget) {
@@ -163,9 +166,10 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   }
 
   function cycleWidgetSize(id: string) {
-    const sizesInOrder = ["S", "M", "L", "Wide"];
-    const current = sizes[id] || activeWidget?.sizePreset || "S";
-    const next = sizesInOrder[(sizesInOrder.indexOf(current) + 1) % sizesInOrder.length];
+    const allowed = getWidgetAllowedSizes(id);
+    const current = getValidWidgetSize(id, sizes[id] || activeWidget?.sizePreset);
+    const currentIndex = allowed.indexOf(current);
+    const next = currentIndex >= 0 ? allowed[(currentIndex + 1) % allowed.length] : allowed[0];
     setSizes((value) => ({ ...value, [id]: next }));
     updateWidget(id, { sizePreset: next });
     setSelectedWidget(id);
@@ -189,7 +193,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
         ...current,
         {
           type: id,
-          sizePreset: id === "profile" ? "L" : "M",
+          sizePreset: getValidWidgetSize(id),
           config: id === "tech-stack" ? { technologies: "" } : {},
         } as DashboardWidget,
       ]);
@@ -233,7 +237,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-50"><button type="button" onClick={() => window.open(`/${profile.username}`, "_blank")} className="px-5 py-2.5 rounded-xl border border-border text-primary text-sm font-medium hover:bg-surface-elevated">Preview</button><button type="button" onClick={save} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 disabled:opacity-60">{isSaving ? "Saving..." : "Save Changes"}</button></div>
         {toast && <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-border bg-surface px-4 py-2 text-sm text-text-primary shadow-xl">{toast}</div>}
       </main>
-      <SettingsPanel activeWidgetType={selectedWidget} activeWidget={activeWidget} updateWidget={updateWidget} isUploading={isUploading} onResumeUpload={handleFileUpload} selectedWidget={selectedWidget} selectedSize={sizes[selectedWidget] || "M"} onSizeChange={changeSize} onRemove={() => removeWidget()} avatarUrl={avatarUrl} onAvatarChange={(url) => setCropImage(url)} profileFields={profileFields} onProfileChange={(field, value) => setProfileFields((current) => ({ ...current, [field]: value }))} city={city} timezone={timezone} onCityChange={setCity} onTimezoneChange={setTimezone} />
+      <SettingsPanel activeWidgetType={selectedWidget} activeWidget={activeWidget} updateWidget={updateWidget} isUploading={isUploading} onResumeUpload={handleFileUpload} selectedWidget={selectedWidget} selectedSize={getValidWidgetSize(selectedWidget, sizes[selectedWidget])} onSizeChange={changeSize} onRemove={() => removeWidget()} avatarUrl={avatarUrl} onAvatarChange={(url) => setCropImage(url)} profileFields={profileFields} onProfileChange={(field, value) => setProfileFields((current) => ({ ...current, [field]: value }))} city={city} timezone={timezone} onCityChange={setCity} onTimezoneChange={setTimezone} />
       <LogoutButton />
       <ConfirmModal isOpen={confirmDelete} title="Remove widget" message="Remove this widget?" onCancel={() => setConfirmDelete(false)} onConfirm={confirmRemove} />
       {cropImage && <CropModal image={cropImage} onCancel={() => setCropImage("")} onSave={(cropped) => { setAvatarUrl(cropped); setCropImage(""); }} />}

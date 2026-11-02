@@ -97,7 +97,7 @@ function getGithubUsername(widgetData: WidgetView[], type: string) {
 function SortableWidget({ id, editorMode, selected, sizeClass, onSelect, onDelete, onResize, children }: { id: string; editorMode: boolean; selected: boolean; sizeClass: string; onSelect: () => void; onDelete: () => void; onResize: () => void; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   return <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} onClick={onSelect} className={`${sizeClass} relative overflow-hidden rounded-3xl group ${selected ? "ring-2 ring-white ring-offset-2 ring-offset-background" : ""} ${id === "profile" ? "rounded-4xl" : ""}`}>
-    {editorMode && <EditorOverlay size={id === "location" || id === "resume" ? id === "resume" ? "resume" : "small" : "large"} roundedClass={id === "profile" ? "rounded-4xl" : "rounded-3xl"} onDelete={onDelete} onExpand={onResize} dragHandleProps={{ ...attributes, ...listeners }} />}
+    {editorMode && <EditorOverlay size={id === "resume" ? (sizeClass.includes("col-span-1") ? "resume" : "large") : sizeClass.includes("col-span-1") ? "small" : "large"} roundedClass={id === "profile" ? "rounded-4xl" : "rounded-3xl"} onDelete={onDelete} onExpand={onResize} dragHandleProps={{ ...attributes, ...listeners }} />}
     {children}
   </div>;
 }

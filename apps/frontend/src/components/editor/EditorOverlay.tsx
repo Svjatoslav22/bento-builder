@@ -71,6 +71,14 @@ export function EditorOverlay({
           </button>
           <button
             type="button"
+            className="p-1.5 rounded-full hover:bg-surface-elevated text-text-primary"
+            title="Resize"
+            onClick={(event) => { event.stopPropagation(); onExpand?.(); }}
+          >
+            <ResizeIcon />
+          </button>
+          <button
+            type="button"
             className="p-1.5 rounded-full hover:bg-red-500/20 text-text-primary hover:text-red-400"
             title="Delete"
             onClick={(event) => { event.stopPropagation(); onDelete?.(); }}
@@ -96,6 +104,14 @@ export function EditorOverlay({
             title="Drag"
           >
             <DragHandleIcon />
+          </button>
+          <button
+            type="button"
+            className="p-1.5 rounded-full hover:bg-black/20 text-white"
+            title="Resize"
+            onClick={(event) => { event.stopPropagation(); onExpand?.(); }}
+          >
+            <ResizeIcon />
           </button>
           <button
             type="button"

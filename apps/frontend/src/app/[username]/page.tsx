@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import EditProfileFab from "@/components/EditProfileFab";
 import BentoGrid from "@/components/BentoGrid";
 import LogoutButton from "@/components/LogoutButton";
+import { getValidWidgetSize } from "@/lib/widgets";
 
 type ProfilePageProps = {
   params: Promise<{ username: string }>;
@@ -29,7 +30,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .map((widget) => ({
       id: widget.id,
       type: widget.type,
-      sizePreset: widget.sizePreset,
+      sizePreset: getValidWidgetSize(widget.type, widget.sizePreset),
       config: widget.config && typeof widget.config === "object" ? widget.config : {},
     }));
 
