@@ -39,7 +39,7 @@ export async function GET() {
       radioName: "Yantarne FM",
       listenUrl: "https://yantarne.fm/",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ isPlaying: false });
   }
 }

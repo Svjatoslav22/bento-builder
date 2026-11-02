@@ -8,4 +8,4 @@ async function bootstrap() {
   // Слухаємо всі інтерфейси (0.0.0.0), це обов'язкова умова для хмарних хостингів
   await app.listen(port, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();

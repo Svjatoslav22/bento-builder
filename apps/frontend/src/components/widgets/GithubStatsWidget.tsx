@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
 
 type GithubWidget = {
   id?: string;
@@ -103,22 +105,26 @@ export default function GithubStatsWidget({
     .replace(/^@/, "");
   const profileUrl = username ? `https://github.com/${username}` : githubUrl || "https://github.com";
   const chartUrl = username ? `https://ghchart.rshah.org/${username}` : null;
-  const [isMounted, setIsMounted] = useState(false);
-  const [hasError, setHasError] = useState(!username);
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+  const [prevUsername, setPrevUsername] = useState(username);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [chartLoaded, setChartLoaded] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setHasError(!username);
+  if (prevUsername !== username) {
+    setPrevUsername(username);
+    setHasLoadError(false);
     setChartLoaded(false);
-  }, [username]);
+  }
+
+  const hasError = !username || hasLoadError;
 
   useEffect(() => {
     if (!isMounted || !username || !chartUrl || hasError || chartLoaded) return;
-    const timeout = window.setTimeout(() => setHasError(true), 4000);
+    const timeout = window.setTimeout(() => setHasLoadError(true), 4000);
     return () => window.clearTimeout(timeout);
   }, [isMounted, username, chartUrl, hasError, chartLoaded]);
 
@@ -161,10 +167,10 @@ export default function GithubStatsWidget({
           <img
             src={chartUrl}
             alt="GitHub contributions chart"
-            onError={() => setHasError(true)}
+            onError={() => setHasLoadError(true)}
             onLoad={(event) => {
               if (event.currentTarget.naturalWidth === 0) {
-                setHasError(true);
+                setHasLoadError(true);
                 return;
               }
               setChartLoaded(true);

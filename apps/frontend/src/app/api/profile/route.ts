@@ -69,7 +69,14 @@ export async function POST(request: Request) {
       create: {
         userId: session.user.id,
         ...profileFields,
-        widgets: { create: defaultWidgets.map(({ id: _id, ...widget }) => widget) },
+        widgets: {
+          create: defaultWidgets.map(({ type, sizePreset, position, config }) => ({
+            type,
+            sizePreset,
+            position,
+            config,
+          })),
+        },
       },
       update: profileFields,
       include: { widgets: true },
@@ -77,9 +84,12 @@ export async function POST(request: Request) {
 
     if (profile.widgets.length === 0 && defaultWidgets.length > 0) {
       await prisma.widget.createMany({
-        data: defaultWidgets.map(({ id: _id, ...widget }) => ({
+        data: defaultWidgets.map(({ type, sizePreset, position, config }) => ({
           profileId: profile.id,
-          ...widget,
+          type,
+          sizePreset,
+          position,
+          config,
         })),
       });
     }
