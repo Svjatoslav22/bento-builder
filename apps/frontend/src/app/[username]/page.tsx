@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import EditProfileFab from "@/components/EditProfileFab";
@@ -9,6 +10,49 @@ import { getValidWidgetSize } from "@/lib/widgets";
 type ProfilePageProps = {
   params: Promise<{ username: string }>;
 };
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { username } = await params;
+
+  const profile = await prisma.profile.findUnique({
+    where: { username: username.toLowerCase() },
+    select: { name: true, title: true, bio: true },
+  });
+
+  if (!profile) {
+    return {
+      title: "Profile Not Found",
+    };
+  }
+
+  const displayName = profile.name || `@${username}`;
+  const title = `${displayName}'s Bento Profile`;
+  const description =
+    profile.bio || profile.title || `Check out ${displayName}'s interactive developer card on Bento Builder.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: "/og-image.jpg",
+          width: 1024,
+          height: 537,
+          alt: `${displayName} on Bento Builder`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/og-image.jpg"],
+    },
+  };
+}
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
