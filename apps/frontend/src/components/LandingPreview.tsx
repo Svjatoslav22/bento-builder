@@ -13,11 +13,21 @@ export default function LandingPreview() {
         <span className="rounded-full border border-[#292832] px-2.5 py-1 text-[10px] text-[#888792]">{p.publicBadge}</span>
       </div>
       <div className="grid grid-flow-dense grid-cols-6 auto-rows-[minmax(74px,auto)] gap-2.5 sm:auto-rows-[minmax(88px,auto)] sm:gap-3">
-        <div className={`${tileClass} col-span-4 row-span-1 flex min-w-0 items-center gap-3 sm:col-span-3 sm:row-span-2`}>
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#24212f] text-lg font-semibold text-[#b8afff]">U</div>
-          <div className="min-w-0"><p className={labelClass}>{p.profile}</p><p className="mt-1 truncate text-sm font-semibold text-white">User</p><p className="truncate text-xs text-[#9A9AA5]">{p.role}</p></div>
+        <div className={`${tileClass} col-span-4 row-span-1 flex min-w-0 flex-col justify-between sm:col-span-3 sm:row-span-2`}>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#24212f] text-lg font-semibold text-[#b8afff] sm:h-14 sm:w-14 sm:text-xl">
+              U
+            </div>
+            <span className="rounded-full border border-[#292832] bg-[#16151f] px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#8f8f9b]">
+              {p.profile}
+            </span>
+          </div>
+          <div className="mt-4 min-w-0 sm:mt-6">
+            <p className="truncate text-base font-semibold text-white sm:text-lg">User</p>
+            <p className="mt-0.5 truncate text-xs text-[#9A9AA5] sm:text-sm">{p.role}</p>
+          </div>
         </div>
-        <div className={`${tileClass} col-span-2 row-span-1 flex min-w-0 flex-col justify-center sm:col-span-3`}>
+        <div className={`${tileClass} col-span-2 row-span-1 flex min-w-0 flex-col justify-between sm:col-span-3`}>
           <p className={labelClass}>{p.portfolio}</p><p className="mt-2 text-sm font-semibold text-white">{p.selectedWorks} <span className="text-[#8E7FFF]">↗</span></p>
         </div>
         <div className={`${tileClass} col-span-3 row-span-1 min-w-0 sm:col-span-3`}>
