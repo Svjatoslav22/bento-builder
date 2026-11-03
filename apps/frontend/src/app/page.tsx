@@ -21,19 +21,34 @@ export default async function Home() {
   }
 
   return (
-    <main className="antialiased min-h-screen flex items-center justify-center p-6 bg-background">
-      <section className="w-full max-w-xl border border-border bg-surface p-8 sm:p-12 text-center shadow-2xl">
-        <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-text-secondary">Bento Builder</p>
-        <h1 className="text-4xl font-semibold tracking-tight text-text-primary">Створіть свій bento-профіль розробника</h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-text-secondary">Зберіть свої роботи, дані про себе та резюме на одній публічній сторінці.</p>
-        <LandingPreview />
-        <ol className="mx-auto mt-6 max-w-sm space-y-2 text-left text-sm text-text-primary">
-          <li className="flex gap-3"><span className="text-text-secondary">1.</span>Увійдіть через GitHub або Google.</li>
-          <li className="flex gap-3"><span className="text-text-secondary">2.</span>Заповніть коротку форму профілю.</li>
-          <li className="flex gap-3"><span className="text-text-secondary">3.</span>Налаштуйте сторінку в редакторі й поділіться посиланням.</li>
-        </ol>
-        <p className="mx-auto mt-6 max-w-sm text-xs leading-5 text-text-secondary">Вхід потрібен, щоб зберегти ваш профіль і створити публічну сторінку за вашим username.</p>
-        <div className="mx-auto mt-6 max-w-xs"><AuthButton /></div>
+    <main className="antialiased relative isolate min-h-screen overflow-hidden bg-[#0a0a0a] px-5 py-10 text-white sm:px-8 lg:flex lg:items-center lg:py-8">
+      <div aria-hidden="true" className="pointer-events-none absolute right-[-12rem] top-[-14rem] -z-10 h-[38rem] w-[38rem] rounded-full bg-[#6D5BFF]/25 blur-[130px]" />
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+        <div className="mx-auto w-full max-w-xl lg:mx-0">
+          <div className="mb-8 flex items-center gap-3">
+            <span aria-hidden="true" className="grid h-9 w-9 grid-cols-2 gap-1 rounded-xl border border-[#393348] bg-[#17151f] p-1.5">
+              <span className="rounded-[3px] bg-[#8E7FFF]" /><span className="rounded-[3px] bg-[#5546c8]" /><span className="rounded-[3px] bg-[#5546c8]" /><span className="rounded-[3px] bg-[#8E7FFF]" />
+            </span>
+            <span className="text-sm font-semibold tracking-wide text-white">Bento Builder</span>
+          </div>
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#a8a3bb]">Ваше портфоліо в одному місці</p>
+          <h1 className="max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.045em] text-white sm:text-5xl lg:text-[58px]">
+            Створіть свій <span className="text-[#8E7FFF]">bento-профіль</span> розробника
+          </h1>
+          <p className="mt-5 max-w-lg text-base leading-7 text-[#9A9AA5]">Зберіть свої роботи, дані про себе та резюме на одній публічній сторінці.</p>
+          <p className="mt-4 max-w-lg text-sm leading-6 text-[#777781]">Увійдіть, щоб зберегти профіль і створити власну публічну сторінку.</p>
+          <div className="mt-7 max-w-md"><AuthButton /></div>
+          <ol className="mt-8 flex flex-wrap gap-2 sm:gap-3" aria-label="Як це працює">
+            {["Увійти", "Заповнити профіль", "Поділитися посиланням"].map((step, index) => (
+              <li key={step} className="flex items-center gap-2 rounded-full border border-[#26262c] bg-[#111114]/80 px-3 py-2 text-xs font-medium text-[#b6b6c0] sm:text-sm">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#201d32] text-[11px] text-[#a99fff]">{index + 1}</span>{step}
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="mx-auto w-full max-w-[560px] lg:mx-0 lg:justify-self-end">
+          <LandingPreview />
+        </div>
       </section>
     </main>
   );
