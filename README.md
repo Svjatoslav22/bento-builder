@@ -25,6 +25,7 @@ BentoBuilder is a SaaS platform for building personal portfolio pages in a moder
   - **Resume** — PDF upload via Vercel Blob
 - **💾 Persistent state** — layout, sizes, and widget configs are saved to PostgreSQL through Prisma (`PATCH /api/profile`).
 - **🌐 Public profile** — share `/{username}`; Server Components render the grid for SEO and fast first paint.
+- **🌍 Multilingual landing page** — instant language switcher (`UK` · `PL` · `EN`) with browser language detection and `localStorage` persistence.
 - **🔐 Auth** — Google and GitHub sign-in with NextAuth.js.
 
 ---
@@ -136,6 +137,8 @@ AI Chat widget  →  POST /api/chat    →  streaming LLM response
 | Dashboard UI | `apps/frontend/src/components/DashboardClient.tsx` |
 | Grid & widgets | `apps/frontend/src/components/BentoGrid.tsx` |
 | Widget library | `apps/frontend/src/components/widgets/` |
+| Landing UI & i18n | `apps/frontend/src/components/LandingContent.tsx` |
+| Landing translations | `apps/frontend/src/lib/landingI18n.ts` |
 | Profile API | `apps/frontend/src/app/api/profile/route.ts` |
 | AI chat API | `apps/frontend/src/app/api/chat/route.ts` |
 | Prisma schema | `apps/backend/prisma/schema.prisma` |
