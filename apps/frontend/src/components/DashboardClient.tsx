@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
@@ -12,11 +12,13 @@ import LogoutButton from "@/components/LogoutButton";
 import CopyLinkButton from "@/components/CopyLinkButton";
 import CropModal from "@/components/CropModal";
 import ConfirmModal from "@/components/ConfirmModal";
+import EditorHelpModal from "@/components/EditorHelpModal";
 
 type DashboardWidget = WidgetData & { id: string; position: number; config: unknown };
 type DashboardProfile = ProfileData & { username: string; widgets: DashboardWidget[] };
 type EditableProfile = Pick<ProfileData, "name" | "title" | "bio" | "linkedinUrl" | "githubUrl" | "resumeUrl">;
 const MAX_WIDGETS = 6;
+const HELP_SEEN_KEY = "bento-editor-help-seen";
 
 export default function DashboardClient({ profile }: { profile: DashboardProfile }) {
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const persistTimer = useRef<number | null>(null);
   const origin = useSyncExternalStore(() => () => undefined, () => window.location.origin, () => "");
   const publicLink = origin ? `${origin}/${profile.username}` : "";
@@ -147,6 +150,26 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
     loadProfile();
   }, [router]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        if (!window.localStorage.getItem(HELP_SEEN_KEY)) setHelpOpen(true);
+      } catch {
+        // localStorage may be unavailable; the help stays reachable via the button.
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const closeHelp = useCallback(() => {
+    setHelpOpen(false);
+    try {
+      window.localStorage.setItem(HELP_SEEN_KEY, "1");
+    } catch {
+      // Ignore storage errors.
+    }
+  }, []);
+
   function changeSize(size: string) {
     const validSize = getValidWidgetSize(selectedWidget, size);
     setSizes((current) => ({ ...current, [selectedWidget]: validSize }));
@@ -231,7 +254,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
       <Sidebar widgetCount={widgets.length} addedWidgetTypes={widgets.map((widget) => widget.type)} onAddWidget={addWidget} />
       <main className="flex-1 h-full canvas-bg flex flex-col relative">
         <div className="flex-1 overflow-y-auto w-full flex flex-col">
-          <div className="sticky top-0 z-[100] flex items-center justify-between gap-4 border-b border-border bg-[#09090B]/90 px-8 py-2.5 backdrop-blur-xl"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><CopyLinkButton value={publicLink} /></div>
+          <div className="sticky top-0 z-[100] flex items-center justify-between gap-4 border-b border-border bg-[#09090B]/90 px-8 py-2.5 backdrop-blur-xl"><span className="truncate text-xs text-text-secondary">Your public link: {publicLink}</span><div className="flex flex-shrink-0 items-center gap-2"><button type="button" onClick={() => setHelpOpen(true)} className="border border-border bg-surface-elevated px-3 py-1.5 text-xs font-medium text-text-primary transition hover:border-border-hover">? How it works</button><CopyLinkButton value={publicLink} /></div></div>
           <div className="flex justify-center p-8 pb-32"><BentoGrid editorMode isEditing profile={{ ...profileState, avatarUrl }} widgets={widgets.map((widget) => widget.type)} widgetData={widgets} widgetSizes={sizes} selectedWidget={selectedWidget} onSelectWidget={setSelectedWidget} onDragEnd={dragEnd} onDragStart={setSelectedWidget} onDeleteWidget={removeWidget} onResizeWidget={cycleWidgetSize} city={city} timezone={timezone} /></div>
         </div>
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface/80 backdrop-blur-md border border-border p-2 rounded-2xl shadow-2xl z-50"><button type="button" onClick={() => window.open(`/${profile.username}`, "_blank")} className="px-5 py-2.5 rounded-xl border border-border text-primary text-sm font-medium hover:bg-surface-elevated">Preview</button><button type="button" onClick={save} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold hover:bg-gray-200 disabled:opacity-60">{isSaving ? "Saving..." : "Save Changes"}</button></div>
@@ -239,6 +262,7 @@ export default function DashboardClient({ profile }: { profile: DashboardProfile
       </main>
       <SettingsPanel activeWidgetType={selectedWidget} activeWidget={activeWidget} updateWidget={updateWidget} isUploading={isUploading} onResumeUpload={handleFileUpload} selectedWidget={selectedWidget} selectedSize={getValidWidgetSize(selectedWidget, sizes[selectedWidget])} onSizeChange={changeSize} onRemove={() => removeWidget()} avatarUrl={avatarUrl} onAvatarChange={(url) => setCropImage(url)} profileFields={profileFields} onProfileChange={(field, value) => setProfileFields((current) => ({ ...current, [field]: value }))} city={city} timezone={timezone} onCityChange={setCity} onTimezoneChange={setTimezone} />
       <LogoutButton />
+      <EditorHelpModal isOpen={helpOpen} onClose={closeHelp} />
       <ConfirmModal isOpen={confirmDelete} title="Remove widget" message="Remove this widget?" onCancel={() => setConfirmDelete(false)} onConfirm={confirmRemove} />
       {cropImage && <CropModal image={cropImage} onCancel={() => setCropImage("")} onSave={(cropped) => { setAvatarUrl(cropped); setCropImage(""); }} />}
     </div>
