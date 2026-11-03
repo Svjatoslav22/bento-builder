@@ -25,12 +25,7 @@ export default async function Home() {
       <div aria-hidden="true" className="pointer-events-none absolute right-[-12rem] top-[-14rem] -z-10 h-[38rem] w-[38rem] rounded-full bg-[#6D5BFF]/25 blur-[130px]" />
       <section className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
         <div className="mx-auto w-full max-w-xl lg:mx-0">
-          <div className="mb-8 flex items-center gap-3">
-            <span aria-hidden="true" className="grid h-9 w-9 grid-cols-2 gap-1 rounded-xl border border-[#393348] bg-[#17151f] p-1.5">
-              <span className="rounded-[3px] bg-[#8E7FFF]" /><span className="rounded-[3px] bg-[#5546c8]" /><span className="rounded-[3px] bg-[#5546c8]" /><span className="rounded-[3px] bg-[#8E7FFF]" />
-            </span>
-            <span className="text-sm font-semibold tracking-wide text-white">Bento Builder</span>
-          </div>
+          <img src="/logo.svg" height={32} alt="Bento Builder" className="mb-6 h-8 w-auto" />
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-[#a8a3bb]">Ваше портфоліо в одному місці</p>
           <h1 className="max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-0.045em] text-white sm:text-5xl lg:text-[58px]">
             Створіть свій <span className="text-[#8E7FFF]">bento-профіль</span> розробника
