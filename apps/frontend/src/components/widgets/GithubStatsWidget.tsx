@@ -152,7 +152,7 @@ export default function GithubStatsWidget({
   return (
     <div className={shellClass}>
       <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
-      <div className="relative flex h-full min-h-0 flex-col">
+      <div className="relative flex h-full min-h-0 flex-col justify-between">
         <div className="mb-1.5 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export default function GithubStatsWidget({
             <h3 className="truncate text-base font-semibold leading-tight text-text-primary">GitHub Activity</h3>
           </div>
         </div>
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded-md">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-md flex items-end">
           {!chartLoaded && (
             <div className="absolute inset-0 animate-pulse rounded-md bg-zinc-800/80" />
           )}
@@ -178,7 +178,7 @@ export default function GithubStatsWidget({
               }
               setChartLoaded(true);
             }}
-            className={`h-full w-full object-contain object-left-top rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
+            className={`h-full w-full object-contain object-left-bottom rounded-md dark:invert dark:brightness-90 dark:contrast-125 ${chartLoaded ? "opacity-100" : "opacity-0"}`}
           />
         </div>
       </div>
