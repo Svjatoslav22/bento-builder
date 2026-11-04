@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/Providers";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin", "latin-ext", "cyrillic"] });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bento-builder-frontend.vercel.app";
 

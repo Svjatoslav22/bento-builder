@@ -7,7 +7,6 @@ import {
   LANDING_LANG_STORAGE_KEY,
   LANDING_MESSAGES,
   LANG_NAMES,
-  detectBrowserLang,
   isLandingLang,
   type LandingLang,
   type LandingMessages,
@@ -29,9 +28,9 @@ function getSnapshot(): LandingLang {
     const stored = window.localStorage.getItem(LANDING_LANG_STORAGE_KEY);
     if (isLandingLang(stored)) return stored;
   } catch {
-    // localStorage unavailable: fall back to browser detection.
+    // localStorage unavailable: use the Ukrainian default.
   }
-  return detectBrowserLang();
+  return DEFAULT_LANDING_LANG;
 }
 
 // Server and hydration render use the default language; the client then
