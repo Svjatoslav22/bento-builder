@@ -251,8 +251,7 @@ export default function OnboardingForm() {
                   <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-[#e7e7eb]">
                     {copy.username} <span className="text-[#9A9AA5]">*</span>
                   </label>
-                  <div className={`flex h-12 overflow-hidden rounded-xl border bg-[#0f0f12] transition focus-within:ring-2 ${usernameMessage ? "border-red-400/70 focus-within:border-red-400 focus-within:ring-red-400/20" : "border-[#26262c] focus-within:border-[#6D5BFF] focus-within:ring-[#6D5BFF]/30"}`}>
-                    <span aria-hidden="true" className="flex shrink-0 items-center border-r border-[#26262c] px-3 text-xs text-[#777782] sm:px-4 sm:text-sm">bento-builder-frontend.vercel.app/</span>
+                  <div className={`flex h-12 items-center overflow-hidden rounded-xl border bg-[#0f0f12] transition focus-within:ring-2 ${usernameMessage ? "border-red-400/70 focus-within:border-red-400 focus-within:ring-red-400/20" : "border-[#26262c] focus-within:border-[#6D5BFF] focus-within:ring-[#6D5BFF]/30"}`}>
                     <input
                       id="username"
                       name="username"
@@ -267,11 +266,11 @@ export default function OnboardingForm() {
                       aria-invalid={Boolean(usernameMessage || usernameStatus === "taken")}
                       aria-describedby="username-helper username-status username-error"
                       placeholder="yourname"
-                      className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-[#656570]"
+                      className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm text-white outline-none placeholder:text-[#656570]"
                     />
-                    {usernameStatus === "available" && <span className="flex items-center gap-1.5 pr-3 text-xs font-medium text-emerald-400 sm:pr-4"><Check size={15} aria-hidden="true" />{copy.usernameAvailable}</span>}
-                    {usernameStatus === "taken" && <span className="flex items-center gap-1.5 pr-3 text-xs font-medium text-red-400 sm:pr-4"><X size={15} aria-hidden="true" />{copy.usernameTaken}</span>}
-                    {usernameStatus === "checking" && <LoaderCircle size={16} aria-label={copy.usernameChecking} className="mr-4 animate-spin text-[#9A9AA5]" />}
+                    {usernameStatus === "available" && <span className="flex shrink-0 items-center gap-1.5 pr-4 text-xs font-medium text-emerald-400"><Check size={15} aria-hidden="true" />{copy.usernameAvailable}</span>}
+                    {usernameStatus === "taken" && <span className="flex shrink-0 items-center gap-1.5 pr-4 text-xs font-medium text-red-400"><X size={15} aria-hidden="true" />{copy.usernameTaken}</span>}
+                    {usernameStatus === "checking" && <span className="flex shrink-0 items-center pr-4"><LoaderCircle size={16} aria-label={copy.usernameChecking} className="animate-spin text-[#9A9AA5]" /></span>}
                   </div>
                   <p id="username-helper" className={helperClass}>{copy.usernameHelper}</p>
                     {usernameStatus === "error" && <p id="username-status" className={helperClass}>{copy.usernameCheckFailed}</p>}
